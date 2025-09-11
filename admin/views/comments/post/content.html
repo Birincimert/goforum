@@ -1,0 +1,66 @@
+{{define "content"}}
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Yorumlar - {{.Post.Title}}</h1>
+    <p class="mb-4">Bu sayfadan yazıya ait yorumları görüntüleyebilir ve silebilirsiniz.</p>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Yorum Listesi</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Yazar</th>
+                            <th>İçerik</th>
+                            <th>Tarih</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Comments}}
+                        <tr>
+                            <td>{{.ID}}</td>
+                            <td>{{.Name}}</td>
+                            <td>{{.Content}}</td>
+                            <td>{{.CreatedAt.Format "02-01-2006 15:04"}}</td>
+                            <td>
+                                <a href="/admin/comments/delete/{{.ID}}" class="btn btn-danger btn-sm">Sil</a>
+                            </td>
+                        </tr>
+                        {{template "renderReplies" .Replies}}
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+            <a class="btn btn-secondary" href="/admin/comments">Geri</a>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable({
+        language: { url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Turkish.json" }
+    });
+});
+</script>
+{{end}}
+
+{{define "renderReplies"}}
+{{range .}}
+<tr>
+    <td>{{.ID}}</td>
+    <td>↳ {{.Name}}</td>
+    <td>{{.Content}}</td>
+    <td>{{.CreatedAt.Format "02-01-2006 15:04"}}</td>
+    <td>
+        <a href="/admin/comments/delete/{{.ID}}" class="btn btn-danger btn-sm">Sil</a>
+    </td>
+ </tr>
+ {{template "renderReplies" .Replies}}
+{{end}}
+{{end}}
+

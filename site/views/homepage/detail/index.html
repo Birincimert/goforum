@@ -1,0 +1,14 @@
+{{ define "index" }}
+<!DOCTYPE html>
+<html lang="en">
+{{ template "head" }}
+    <body {{ if .CurrentUser }}data-auth="1"{{ else }}data-auth="0"{{ end }} data-return-url="{{ .ReturnURL }}">
+{{ template "navbar" }}
+{{ template "content" . }}
+        <hr />
+{{ template "footer" }}
+       {{ template "scripts" }}
+       {{ template "alert" .Alert }}
+    </body>
+</html>
+{{ end }}

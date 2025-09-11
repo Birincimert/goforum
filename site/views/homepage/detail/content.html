@@ -1,0 +1,603 @@
+{{/* Rekürsif yorum render şablonu (global) */}}
+{{ define "renderComment" }}
+
+
+<div class="{{ if .ParentCommentID }}reply-item mb-3{{ else }}comment-item mb-4{{ end }}">
+    <div class="{{ if .ParentCommentID }}p-3{{ else }}comment-header p-4 d-flex align-items-center{{ end }}">
+        {{ if .ParentCommentID }}
+        <div class="d-flex align-items-center mb-2">
+            <div class="reply-avatar" style="width: 32px; height: 32px; background: #111111; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                <span style="color: white; font-weight: bold; font-size: 0.9rem;">{{ slice .Name 0 1 }}</span>
+            </div>
+            <div class="flex-grow-1">
+                <strong class="reply-author" style="font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #1e1919; display: block; font-weight: 600;">{{ .Name }}</strong>
+                <small class="text-muted" style="font-size: 0.75rem; color: #9a9a9a;">{{ .CreatedAt.Format "02.01.2006 15:04" }}</small>
+            </div>
+        </div>
+        {{ else }}
+        <div class="comment-avatar" style="width: 40px; height: 40px; background: #111111; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+            <span style="color: white; font-weight: bold; font-size: 1.1rem;">{{ slice .Name 0 1 }}</span>
+        </div>
+        <div class="flex-grow-1">
+            <strong class="comment-author" style="font-family: 'Inter', sans-serif; font-size: 1rem; color: #1e1919; display: block; font-weight: 600;">{{ .Name }}</strong>
+            <small class="text-muted" style="font-size: 0.8rem; color: #9a9a9a;">{{ .CreatedAt.Format "02.01.2006 15:04" }}</small>
+        </div>
+        {{ end }}
+    </div>
+
+    <div class="{{ if .ParentCommentID }}px-3 pb-3{{ else }}comment-body px-4 py-1 {{ end }}">
+        <p class="{{ if .ParentCommentID }}reply-content mt-2 mb-2{{ else }}comment-content mt-4{{ end }}">
+            {{ .Content }}
+        </p>
+
+        <div class="{{ if .ParentCommentID }}reply-actions d-flex align-items-center{{ else }}comment-actions d-flex pb-3 align-items-center justify-content-between{{ end }}">
+            <div class="action-buttons">
+                <button class="btn btn-sm like-btn me-2" data-comment-id="{{ .ID }}">
+                    <i class="far fa-heart like-icon"></i> <span class="like-text">Beğen</span>
+                    <span class="likes-count badge bg-light text-dark ms-1" data-comment-id="{{ .ID }}">{{ .LikesCount }}</span>
+                </button>
+                <button class="btn btn-sm reply-btn me-2" data-comment-id="{{ .ID }}" data-comment-author="{{ .Name }}">
+                    <i class="fas fa-reply"></i> Yanıtla
+                </button>
+                {{ if .Replies }}
+                <button class="btn btn-sm toggle-replies ms-2" data-comment-id="{{ .ID }}">
+                    <i class="fas fa-comments"></i> <span class="replies-count">({{ len .Replies }}) Yanıtı Göster</span>
+                </button>
+                {{ end }}
+            </div>
+        </div>
+        
+
+        <div id="reply-form-{{ .ID }}" class="reply-form-container mt-2" style="display: none;">
+            <form action="/comment/add" method="post" style="background: #f6f6f6; padding: 0.75rem; border-radius: 8px;">
+                <input type="hidden" name="post-id" value="{{ .PostID }}">
+                <input type="hidden" name="parent-comment-id" value="{{ .ID }}">
+                <div class="form-group mb-2">
+                    <textarea class="form-control" name="comment-content" rows="3" placeholder="Yanıtınız" required style="resize: none; border-radius: 8px;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-dark" style="border-radius: 22px; padding: 4px 16px;">
+                    Gönder
+                </button>
+            </form>
+        </div>
+
+        {{ if .Replies }}
+        <div id="replies-{{ .ID }}" class="replies-container mt-3" style="display: none;">
+            {{ range .Replies }}
+                {{ template "renderComment" . }}
+            {{ end }}
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}
+
+{{ define "content" }}
+
+<header class="masthead" style="background-image: url('/{{ .Post.Picture_url }}'); background-size: cover; background-position: center; position: relative; overflow: hidden; height: 600px;">
+    <div class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 1;"></div>
+    <div class="container d-flex align-items-center justify-content-center" style="position: relative; z-index: 2; height: 100%;">
+        <div class="row w-100">
+            <div class="col-lg-10 col-md-12 mx-auto text-center">
+                <div class="post-heading text-white">
+                    <h1 style="font-family: 'Playfair Display', serif; font-weight: 700; font-size: 3.5rem; margin-bottom: 0.5rem;">{{ .Post.Title }}</h1>
+                    <h2 class="subheading" style="font-family: 'Lato', sans-serif; font-size: 1.5rem; font-weight: 300;">{{ .Post.Description }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<article class="mb-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div id="blog-content" class="post-content my-5" style="font-family: 'Lato', sans-serif; font-size: 1.15rem; line-height: 1.8;">
+                    {{ safeHTML .Post.Content }}
+                </div>
+
+                <div class="comments-section mt-5 pt-4">
+                    <h3 id="comments" class="comments-title mb-3" style="font-family: 'Playfair Display', serif; font-weight: 600; font-size: 1.9rem; color: #111111; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.75rem;">
+                        <i class="fas fa-comments" style="color: #111111;"></i> Yorumlar (<span id="total-comments" style="color: #111111;">{{ add (len .Post.Comments) (sumReplies .Post.Comments) }}</span>)
+                    </h3>
+
+                    <div class="comment-form-container mb-4" style="background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #eeeeee;">
+                        {{ if .CurrentUser }}
+                        <div class="mb-3" style="color:#111111;">
+                            Şu anda <strong>{{ .CurrentUser.Username }}</strong> kullanıcısı olarak oturum açıldı.
+                        </div>
+                        <h5 class="mb-4" style="font-family: 'Lato', sans-serif; font-weight: 600; font-size: 1.3rem; color: #4b4b4b;">
+                            <i class="fas fa-pen-alt" style="color: #111111;"></i> Yorum Ekleyin
+                        </h5>
+                        <form action="/comment/add" method="post">
+                            <input type="hidden" name="post-id" value="{{ .Post.ID }}">
+                            <div class="form-group mb-4">
+                                <textarea class="form-control" id="comment-content" name="comment-content"
+                                          rows="4" placeholder="Düşüncelerinizi paylaşın..." required
+                                          style="border: 1px solid #e5e7eb; padding: 0.9rem; resize: vertical; border-radius: 8px;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-dark px-4 py-2" style="border-radius: 28px; font-weight: 500; background-color: #111111; border-color: #111111;">
+                                <i class="fas fa-paper-plane me-2"></i> Gönder
+                            </button>
+                            <a href="/site/logout" class="btn btn-link">Çıkış yap</a>
+                        </form>
+                        {{ else }}
+                        <div id="auth-section" class="mb-3" style="color:#111111;">
+                            {{ if .Alert.is_alert }}
+                                <div class="alert alert-warning mb-2">{{ .Alert.message }}</div>
+                            {{ end }}
+                            Yorum yazabilmek veya beğenip yanıtlayabilmek için giriş yapın veya kayıt olun.
+                        </div>
+                        <div class="mb-3 d-flex gap-2">
+                            <button type="button" id="cmt-show-login" class="btn btn-dark" style="border-radius: 999px; padding: 8px 18px;">Giriş Yap</button>
+                            <button type="button" id="cmt-show-register" class="btn btn-outline-dark" style="border-radius: 999px; padding: 8px 18px;">Kayıt Ol</button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; display:none;" id="cmt-login-wrap">
+                                    <div class="card-header bg-white" style="border-bottom: 1px solid #eee;">
+                                        <h5 class="mb-0">Giriş Yap</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="cmt-login-form" action="/site/login" method="post">
+                                            <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">Kullanıcı adı</label>
+                                                <input type="text" class="form-control" name="username" placeholder="Kullanıcı adı" required>
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">Şifre</label>
+                                                <input type="password" class="form-control" name="password" placeholder="Şifre" required>
+                                            </div>
+                                            <button class="btn btn-dark" style="border-radius: 999px; padding: 8px 18px;">Giriş Yap</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; display:none;" id="cmt-register-wrap">
+                                    <div class="card-header bg-white" style="border-bottom: 1px solid #eee;">
+                                        <h5 class="mb-0">Kayıt Ol</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="cmt-register-form" action="/site/register" method="post">
+                                            <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label">Ad</label>
+                                                        <input type="text" class="form-control" name="first_name" placeholder="Ad" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label">Soyad</label>
+                                                        <input type="text" class="form-control" name="last_name" placeholder="Soyad" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">E-posta</label>
+                                                <input type="email" class="form-control" name="email" placeholder="E-posta" required>
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">Kullanıcı adı</label>
+                                                <input type="text" class="form-control" name="username" placeholder="Kullanıcı adı" required>
+                                            </div>
+                                            <div class="form-group mb-4">
+                                                <label class="form-label">Şifre</label>
+                                                <input type="password" class="form-control" name="password" placeholder="Şifre" required>
+                                            </div>
+                                            <button class="btn btn-outline-dark" style="border-radius: 999px; padding: 8px 18px;">Kayıt Ol</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                            (function(){
+                                const showL = document.getElementById('cmt-show-login');
+                                const showR = document.getElementById('cmt-show-register');
+                                const wL = document.getElementById('cmt-login-wrap');
+                                const wR = document.getElementById('cmt-register-wrap');
+                                if(showL){ showL.addEventListener('click', ()=>{ if(wL){wL.style.display='block';} if(wR){wR.style.display='none';} }); }
+                                if(showR){ showR.addEventListener('click', ()=>{ if(wR){wR.style.display='block';} if(wL){wL.style.display='none';} }); }
+                            })();
+                        </script>
+                        {{ end }}
+                    </div>
+
+                    <div id="comments-list">
+                        {{ range .Post.Comments }}
+                            {{ template "renderComment" . }}
+                        {{ else }}
+                        <div class="text-center py-5" style="background: #ffffff; border-radius: 12px; border: 1px solid #eeeeee;">
+                            <i class="fas fa-comments mb-3" style="font-size: 3rem; color: #111111;"></i>
+                            <p class="text-muted mb-0" style="font-family: 'Lato', sans-serif;">
+                                Bu yazıya henüz yorum yapılmamış. İlk yorumu siz yapın!
+                            </p>
+                        </div>
+                        {{ end }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button onclick="scrollToTop()" id="scrollTopBtn" title="Yukarı Çık">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+</article>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    /* Inline stillerden taşınan güvenli kurallar */
+    .comment-item {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #eeeeee;
+    }
+
+    .reply-item {
+        background: #fbfbfb;
+        border-radius: 8px;
+        margin-left: 1rem;
+    }
+
+    .comment-header {
+        border-bottom: 1px solid #f2f2f2;
+    }
+
+    .comment-content, .reply-content {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: #3c3c3c;
+    }
+
+    .comment-content { font-size: 0.95rem; }
+    .reply-content { font-size: 0.9rem; }
+
+    .action-buttons .reply-btn,
+    .action-buttons .toggle-replies {
+        color: #111111;
+        border: 1px solid #e5e7eb;
+        font-weight: 500;
+        background: transparent;
+    }
+
+    /* Beğeni butonu için özelleştirilmiş stil */
+    .action-buttons .like-btn {
+        color: #111111;
+        border: 1px solid #e5e7eb;
+        font-weight: 500;
+        background: transparent;
+        padding: 4px 12px;
+        border-radius: 18px;
+        font-size: 0.8rem;
+    }
+
+    .action-buttons .reply-btn { padding: 4px 12px; border-radius: 18px; font-size: 0.8rem; }
+    .reply-item .action-buttons .reply-btn { padding: 2px 8px; border-radius: 14px; font-size: 0.75rem; }
+    .action-buttons .toggle-replies { padding: 4px 12px; border-radius: 18px; font-size: 0.8rem; }
+
+    
+    .comment-item:hover, .comment-form-container:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        transform: translateY(-1px);
+    }
+
+    .reply-item:hover {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transform: translateY(-1px);
+    }
+
+    .reply-btn:hover, .toggle-replies:hover {
+        background-color: #111111 !important;
+        color: white !important;
+        border-color: #111111 !important;
+        transform: translateY(-1px);
+    }
+
+    .action-buttons .like-btn:hover {
+        background-color: #111111 !important;
+        color: white !important;
+        border-color: #111111 !important;
+        transform: translateY(-1px);
+    }
+
+    .action-buttons .like-btn .like-icon {
+        margin-right: 5px;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.15);
+        border-color: #111111;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+    }
+
+    .comment-avatar, .reply-avatar {
+        transition: all 0.3s ease;
+    }
+
+    .comment-avatar:hover, .reply-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+    }
+
+    .action-buttons .btn {
+        transition: all 0.2s ease;
+        display: inline-block;
+        visibility: visible;
+    }
+
+    .comment-actions {
+        border-top: 1px solid #f0f0f0;
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
+
+    .replies-container {
+        border-left: 2px solid #e5e7eb;
+        margin-left: 1rem;
+        padding-left: 1rem;
+    }
+
+    .reply-form-container {
+        margin-left: 1rem;
+        padding-left: 0.8rem;
+    }
+
+    .mention {
+        font-weight: 700; color: #111111;
+    }
+
+    #scrollTopBtn {
+    display: none; /* Varsayılan olarak gizli */
+    position: fixed; /* Ekranın belirli bir yerine sabitle */
+    bottom: 1.5rem; /* Alttan 20 piksel boşluk */
+    right: 1.5rem; /* Sağdan 20 piksel boşluk */
+    z-index: 1000; /* Diğer elementlerin üzerinde olmasını sağla */
+    border: none;
+    background-color: #111; /* Koyu arka plan */
+    color: white; /* Beyaz ok rengi */
+    cursor: pointer;
+    padding: 15px; /* Buton içi boşluk */
+    border-radius: 45%; /* Yuvarlak şekil */
+    font-size: 18px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+#scrollTopBtn:hover {
+    background-color: #333; /* Butonun üzerine gelince rengi koyulaştır */
+    transform: translateY(-2px); /* Butonun hafifçe yukarı çıkmasını sağla */
+}
+
+</style>
+
+<script>
+    // Oturum durumu (body data-auth üzerinden okunur)
+    const IS_AUTH = (document.body.getAttribute('data-auth') === '1');
+
+    // (Removed) toast kullanımı yerine sayfada login/kayıt alanına kaydırma uygulanıyor
+    // Toplam yorum ve yanıt sayısını hesapla
+    function updateCommentCount() {
+        const comments = document.querySelectorAll('.comment-item').length;
+        const replies = document.querySelectorAll('.reply-item').length;
+        const totalComments = comments + replies;
+        const el = document.getElementById('total-comments');
+        if (el) el.textContent = totalComments;
+    }
+
+    // Beğeni işlemleri için global değişkenler
+    const LIKED_COMMENTS_KEY = 'likedComments';
+
+    // Beğeni durumunu güncelle (ikon ve yazı)
+    function updateLikeButton(button, isLiked) {
+        const icon = button.querySelector('.like-icon');
+        const text = button.querySelector('.like-text');
+
+        if (icon) {
+            if (isLiked) {
+                icon.setAttribute('class', 'fas fa-heart like-icon');
+                icon.style.color = '#e74c3c';
+            } else {
+                icon.setAttribute('class', 'far fa-heart like-icon');
+                icon.style.color = '';
+            }
+        }
+        if (text) {
+            text.textContent = isLiked ? 'Beğenildi' : 'Beğen';
+            text.style.color = isLiked ? '#e74c3c' : '';
+        }
+    }
+
+    // localStorage'dan durumları yükle, sayacı backend'den çek
+    async function loadLikeStates() {
+        const likedComments = JSON.parse(localStorage.getItem(LIKED_COMMENTS_KEY)) || {};
+        const likeButtons = document.querySelectorAll('.like-btn');
+        for (const button of likeButtons) {
+            const commentId = button.getAttribute('data-comment-id');
+            let isLiked = IS_AUTH ? !!likedComments[commentId] : false;
+            // Auth ise kullanıcı bazlı durumu backend'den al
+            if (IS_AUTH) {
+                try {
+                    const likedRes = await fetch(`/comment/liked/${commentId}`);
+                    if (likedRes.ok) {
+                        const likedJson = await likedRes.json();
+                        if (typeof likedJson.liked === 'boolean') {
+                            isLiked = likedJson.liked;
+                        }
+                    }
+                } catch (e) {}
+            }
+            updateLikeButton(button, isLiked);
+            try {
+                const res = await fetch(`/comment/likes/${commentId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const badge = button.querySelector('.likes-count');
+                    if (badge) badge.textContent = data.likes ?? 0;
+                }
+            } catch (e) {}
+        }
+    }
+
+    // Beğeni butonuna tıklama olayı
+    function handleLikeClick(event) {
+        event.preventDefault();
+
+        const button = event.currentTarget;
+        const commentId = button.getAttribute('data-comment-id');
+
+        if (!IS_AUTH) {
+            const wL = document.getElementById('cmt-login-wrap');
+            const wR = document.getElementById('cmt-register-wrap');
+            if (wL) { wL.style.display = 'block'; }
+            if (wR) { wR.style.display = 'none'; }
+            const target = document.getElementById('auth-section') || document.getElementById('comments');
+            if (target && typeof target.scrollIntoView === 'function') {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+
+        // Backend'e oy gönder (toggle mantığı sunucuda)
+        fetch(`/comment/upvote/${commentId}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(async (res) => {
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            const data = await res.json();
+            // Sunucudan gelen kesin liked bilgisine göre güncelle
+            let likedComments = JSON.parse(localStorage.getItem(LIKED_COMMENTS_KEY)) || {};
+            if (typeof data.liked === 'boolean') {
+                updateLikeButton(button, data.liked);
+                if (data.liked) {
+                    likedComments[commentId] = true;
+                } else {
+                    delete likedComments[commentId];
+                }
+                localStorage.setItem(LIKED_COMMENTS_KEY, JSON.stringify(likedComments));
+            }
+            const badge = button.querySelector('.likes-count');
+            if (badge && typeof data.likes === 'number') badge.textContent = data.likes;
+        }).catch(() => {
+            // noop
+        });
+    }
+
+    // Sayfa yüklendiğinde çalışacak ana fonksiyon
+    function initializePage() {
+        updateCommentCount();
+
+        // Reply form toggle
+        document.querySelectorAll('.reply-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (!IS_AUTH) {
+                    const wL = document.getElementById('cmt-login-wrap');
+                    const wR = document.getElementById('cmt-register-wrap');
+                    if (wL) { wL.style.display = 'block'; }
+                    if (wR) { wR.style.display = 'none'; }
+                    const target = document.getElementById('auth-section') || document.getElementById('comments');
+                    if (target && typeof target.scrollIntoView === 'function') {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                    return;
+                }
+                const commentId = this.getAttribute('data-comment-id');
+                const author = this.getAttribute('data-comment-author') || '';
+                const replyForm = document.getElementById(`reply-form-${commentId}`);
+
+                // diğer formları kapat
+                document.querySelectorAll('.reply-form-container').forEach(form => {
+                    if(form.id !== `reply-form-${commentId}`) form.style.display = 'none';
+                });
+
+                // formu aç/kapat
+                replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
+
+                // mention'ı textarea başına ekle
+                const textarea = replyForm.querySelector('textarea[name="comment-content"]');
+                if (textarea && author && !textarea.value.startsWith(`@${author} `)) {
+                    textarea.value = `@${author} ` + textarea.value;
+                    textarea.focus();
+                }
+            });
+        });
+
+        // Yanıtları göster/gizle
+        document.querySelectorAll('.toggle-replies').forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.getAttribute('data-comment-id');
+                const repliesContainer = document.getElementById(`replies-${commentId}`);
+                const buttonText = this.querySelector('.replies-count');
+                const replyCount = buttonText.textContent.match(/\d+/)[0];
+
+                if (repliesContainer.style.display === 'none') {
+                    repliesContainer.style.display = 'block';
+                    buttonText.textContent = `(${replyCount}) Yanıtı Gizle`;
+                } else {
+                    repliesContainer.style.display = 'none';
+                    buttonText.textContent = `(${replyCount}) Yanıtı Göster`;
+                }
+            });
+        });
+
+        // Beğeni butonlarını başlat
+        const likeButtons = document.querySelectorAll('.like-btn');
+        likeButtons.forEach(button => button.addEventListener('click', handleLikeClick));
+        // Girişsiz görünümde tüm like butonlarını nötrle
+        if (!IS_AUTH) {
+            likeButtons.forEach(button => updateLikeButton(button, false));
+        }
+
+        // localStorage'dan beğeni durumlarını yükle
+        setTimeout(() => { loadLikeStates(); }, 100);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        initializePage();
+    }
+
+    // Sayfayı kaydırırken butonu göster
+window.onscroll = function() {
+    scrollFunction();
+};
+
+function scrollFunction() {
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+    // Sayfanın 200 piksel aşağı kaydırıldığında butonu göster
+    if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+        scrollTopBtn.style.display = "block";
+    } else {
+        scrollTopBtn.style.display = "none";
+    }
+}
+
+// Butona tıklandığında en üste kaydır
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth' // Yumuşak bir kaydırma efekti sağlar
+    });
+}
+    
+</script>
+
+
+{{ end }}

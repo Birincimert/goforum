@@ -1,0 +1,88 @@
+{{ define "content" }}
+<!-- Page Header-->
+<header class="masthead" style="background-image: url('/assets/assets/img/home-bg.jpg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="site-heading">
+                    <h1>GoBlog</h1>
+                    <span class="subheading">Welcome to my blog page!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- Main Content-->
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            {{ range $index,$value := .Posts }}
+            <div class="post-preview">
+                <a href="/yazilar/{{ $value.Slug }}">
+                    <h2 class="post-title">{{ $value.Title }}</h2>
+                    <h3 class="post-subtitle">{{ $value.Description }}</h3>
+                </a>
+                <p class="post-meta">
+                    {{ getDate $value.CreatedAt }} - {{ getCategory $value.CategoryID }}
+                </p>
+            </div>
+            <hr />
+            {{ end }}
+        </div>
+    </div>
+    <button onclick="scrollToTop()" id="scrollTopBtn" title="Yukarı Çık">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+</div>
+
+
+<style>
+    
+#scrollTopBtn {
+    display: none; /* Varsayılan olarak gizli */
+    position: fixed; /* Ekranın belirli bir yerine sabitle */
+    bottom: 1.5rem; /* Alttan 20 piksel boşluk */
+    right: 1.5rem; /* Sağdan 20 piksel boşluk */
+    z-index: 1000; /* Diğer elementlerin üzerinde olmasını sağla */
+    border: none;
+    background-color: #111; /* Koyu arka plan */
+    color: white; /* Beyaz ok rengi */
+    cursor: pointer;
+    padding: 15px; /* Buton içi boşluk */
+    border-radius: 45%; /* Yuvarlak şekil */
+}
+
+#scrollTopBtn:hover {
+    background-color: #333; /* Butonun üzerine gelince rengi koyulaştır */
+    transform: translateY(-2px); /* Butonun hafifçe yukarı çıkmasını sağla */
+}
+</style>
+
+<script>
+        // Sayfayı kaydırırken butonu göster
+window.onscroll = function() {
+    scrollFunction();
+};
+
+function scrollFunction() {
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+    // Sayfanın 200 piksel aşağı kaydırıldığında butonu göster
+    if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+        scrollTopBtn.style.display = "block";
+    } else {
+        scrollTopBtn.style.display = "none";
+    }
+}
+
+// Butona tıklandığında en üste kaydır
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth' // Yumuşak bir kaydırma efekti sağlar
+    });
+}
+    
+</script>
+
+{{ end }}

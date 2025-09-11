@@ -1,0 +1,30 @@
+{{ define "content" }}
+<!-- Page Header-->
+<header class="masthead" style="background-size: cover; background-position: center; background-image: url('/uploads/blog.jpg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="site-heading">
+                    <h1 class="mt-4"> {{ .Title }} </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- Main Content-->
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12 col-md-10">
+            {{ .Content | safeHTML }}
+        </div>
+        <hr />
+        <div class="d-flex justify-content-center w-100 post-subtitle">
+            <p>Lets find out what's in here <i class="fas fa-hand-point-right ml-2"></i>
+                <button class="ml-2"><a href="/">Explore Blogs!</a> </button>
+            </p>
+
+        </div>
+    </div>
+</div>
+{{ end }}

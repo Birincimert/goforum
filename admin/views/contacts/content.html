@@ -1,0 +1,134 @@
+{{ define "content" }}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    .modal-message {
+        word-wrap: break-word; /* Uzun kelimeleri keserek yeni satıra geçirme */
+        word-break: break-all; /* Özellikle boşluksuz uzun kelimeler için */
+    }
+</style>
+
+<h1>
+    İletişim Paneli
+    <a href="/admin" class="btn btn-outline-primary float-right"> <i class="fa fa-arrow-left"></i> Geri Dön</a>
+</h1>
+
+<div class="container-fluid mt-5">
+    <h2>Gelen Kutusu</h2>
+
+    {{ if .Contacts }}
+    <table class="table table-bordered table-hover">
+        <thead>
+        <tr>
+            <th>Ad</th>
+            <th>E-posta</th>
+            <th>Telefon</th>
+            <th>Konu</th>
+            <th>Mesaj</th>
+            <th>Tarih</th>
+            <th>İşlemler</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{ range .Contacts }}
+        <tr>
+            <td>{{ .Name }}</td>
+            <td>{{ .Email }}</td>
+            <td>{{ .Phone }}</td>
+            <td>{{ .Topic }}</td>
+            <td class="message-cell" data-full-message="{{ .Message }}"
+                style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ .Message }}
+            </td>
+            <td>{{ .CreatedAt.Format "02-01-2006" }}</td>
+            <td>
+                <a href="/admin/contact/delete/{{.ID}}" class="btn btn-outline-danger">
+                    <i class="fa fa-trash"></i>
+                </a>
+                <a href="#" class="btn btn-outline-primary"
+                   data-bs-toggle="modal"
+                   data-bs-target="#messageModal"
+                   data-bs-name="{{ .Name }}"
+                   data-bs-email="{{ .Email }}"
+                   data-bs-phone="{{ .Phone }}"
+                   data-bs-topic="{{ .Topic }}"
+                   data-bs-message="{{ .Message }}">
+                    <i class="fas fa-eye"></i>
+                </a>
+            </td>
+        </tr>
+        {{ end }}
+        </tbody>
+    </table>
+    {{ else }}
+    <div class="alert alert-warning" role="alert">
+        Henüz hiçbir iletişim mesajı bulunmamaktadır.
+    </div>
+    {{ end }}
+</div>
+
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Mesaj Detayları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Ad Soyad:</strong> <span id="modalNameContent"></span></p>
+                <p><strong>E-posta:</strong> <span id="modalEmailContent"></span></p>
+                <p><strong>Telefon:</strong> <span id="modalPhoneContent"></span></p>
+                <p><strong>Konu:</strong> <span id="modalTopicContent"></span></p>
+                <hr>
+                <p><strong>Mesaj:</strong> <span id="modalMessageContent" class="modal-message"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Tablo içindeki mesajları kısalt ve doğru veriyi çek
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.message-cell').forEach(function (cell) {
+            const fullMessage = cell.getAttribute('data-full-message');
+            if (fullMessage) {
+                const words = fullMessage.split(" ");
+                if (words.length > 10) {
+                    cell.textContent = words.slice(0, 10).join(" ") + "...";
+                } else {
+                    cell.textContent = fullMessage;
+                }
+            }
+        });
+
+        // Modalın açılması için dinleyici
+        let messageModal = document.getElementById('messageModal');
+        messageModal.addEventListener('show.bs.modal', function (event) {
+            // Tıklanan butonu yakalar
+            let button = event.relatedTarget;
+            // Butondaki data-bs-* attribute'larını alır
+            let name = button.getAttribute('data-bs-name');
+            let email = button.getAttribute('data-bs-email');
+            let phone = button.getAttribute('data-bs-phone');
+            let topic = button.getAttribute('data-bs-topic');
+            let message = button.getAttribute('data-bs-message');
+
+            // Modalın içindeki HTML elemanlarına verileri yerleştirir
+            document.getElementById('modalNameContent').textContent = name;
+            document.getElementById('modalEmailContent').textContent = email;
+            document.getElementById('modalPhoneContent').textContent = phone;
+            document.getElementById('modalTopicContent').textContent = topic;
+            document.getElementById('modalMessageContent').textContent = message;
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/your-fontawesome-kit-id.js" crossorigin="anonymous"></script>
+
+{{ end }}

@@ -1,0 +1,79 @@
+{{ define "index" }}
+<!DOCTYPE html>
+<html>
+    {{ template "head" }}
+    <body>
+        {{ template "navbar" }}
+
+        <div class="container" style="max-width: 720px;">
+            <div class="mt-4">
+                {{ if .Alert.is_alert }}
+                <div class="alert alert-warning">{{ .Alert.message }}</div>
+                {{ end }}
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 d-flex gap-2">
+                    <button id="show-login" class="btn btn-dark">Giriş Yap</button>
+                    <button id="show-register" class="btn btn-secondary">Kayıt Ol</button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div id="login-form" style="display: none;">
+                        <h3>Giriş Yap</h3>
+                        <form action="/site/login" method="post">
+                            <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
+                            <div class="form-group mb-2">
+                                <input type="text" class="form-control" name="username" placeholder="Kullanıcı adı" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <input type="password" class="form-control" name="password" placeholder="Şifre" required>
+                            </div>
+                            <button class="btn btn-dark">Giriş Yap</button>
+                        </form>
+                    </div>
+                    <div id="register-form" style="display: none;">
+                        <h3>Kayıt Ol</h3>
+                        <form action="/site/register" method="post">
+                            <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
+                            <div class="form-group mb-2">
+                                <input type="text" class="form-control" name="first_name" placeholder="Ad" required>
+                            </div>
+                            <div class="form-group mb-2">
+                                <input type="text" class="form-control" name="last_name" placeholder="Soyad" required>
+                            </div>
+                            <div class="form-group mb-2">
+                                <input type="email" class="form-control" name="email" placeholder="E-posta" required>
+                            </div>
+                            <div class="form-group mb-2">
+                                <input type="text" class="form-control" name="username" placeholder="Kullanıcı adı" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <input type="password" class="form-control" name="password" placeholder="Şifre" required>
+                            </div>
+                            <button class="btn btn-secondary">Kayıt Ol</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const loginBtn = document.getElementById('show-login');
+            const registerBtn = document.getElementById('show-register');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            function showLogin(){ loginForm.style.display='block'; registerForm.style.display='none'; }
+            function showRegister(){ registerForm.style.display='block'; loginForm.style.display='none'; }
+            loginBtn?.addEventListener('click', showLogin);
+            registerBtn?.addEventListener('click', showRegister);
+            // varsayılan: alert hata ise login göster, yoksa login
+            showLogin();
+        </script>
+
+        {{ template "footer" }}
+        {{ template "scripts" }}
+    </body>
+    </html>
+{{ end }}
+
+

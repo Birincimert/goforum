@@ -1,0 +1,43 @@
+{{define "index"}}
+<!DOCTYPE html>
+<html lang="tr">
+
+{{ template "head" }}
+
+<body id="page-top">
+
+<div id="wrapper">
+
+    {{ template "sidebar" }}
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            {{ template "navbar" }}
+            <div class="container-fluid">
+                {{ template "content" . }}
+            </div>
+        </div>
+        {{ template "footer" }}
+    </div>
+</div>
+
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+{{ template "scripts" }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var input = document.getElementById('commentSearch');
+  if (input && window.$ && $.fn.DataTable) {
+    var table = $('#dataTable').DataTable();
+    input.addEventListener('keyup', function() { table.search(this.value).draw(); });
+  }
+});
+</script>
+{{ template "alert" .Alert }}
+
+</body>
+</html>
+{{end}}
+

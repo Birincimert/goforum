@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"goblog/admin/helpers"
-	"goblog/admin/models"
+	"goforum/admin/helpers"
+	"goforum/admin/models"
 	"html/template"
 	"io"
 	"net/http"

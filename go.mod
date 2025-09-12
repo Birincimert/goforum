@@ -1,4 +1,4 @@
-module goblog
+module goforum
 
 go 1.25
 

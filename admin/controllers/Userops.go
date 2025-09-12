@@ -3,8 +3,8 @@ package controllers
 import (
 	"crypto/sha256"
 	"fmt"
-	"goblog/admin/helpers"
-	"goblog/admin/models"
+	"goforum/admin/helpers"
+	"goforum/admin/models"
 	"html/template"
 	"net/http"
 

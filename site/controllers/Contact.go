@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"goblog/site/models"
+	"goforum/site/models"
 	"log"
 	"net/http"
 

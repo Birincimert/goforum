@@ -6,8 +6,8 @@ import (
 	"html/template"
 	"net/http"
 
-	adminmodels "goblog/admin/models"
-	"goblog/site/helpers"
+	adminmodels "goforum/admin/models"
+	"goforum/site/helpers"
 
 	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"

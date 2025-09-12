@@ -1,8 +1,8 @@
 package config
 
 import (
-	admin "goblog/admin/controllers"
-	site "goblog/site/controllers"
+	admin "goforum/admin/controllers"
+	site "goforum/site/controllers"
 	"net/http"
 
 	"github.com/gorilla/sessions"

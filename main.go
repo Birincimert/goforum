@@ -1,9 +1,9 @@
 package main
 
 import (
-	admin_models "goblog/admin/models"
-	"goblog/config"
-	site_models "goblog/site/models"
+	admin_models "goforum/admin/models"
+	"goforum/config"
+	site_models "goforum/site/models"
 	"log"
 	"net/http"
 	"os"

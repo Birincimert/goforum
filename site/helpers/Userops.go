@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	adminmodels "goblog/admin/models"
+	adminmodels "goforum/admin/models"
 	"net/http"
 
 	"github.com/gorilla/sessions"

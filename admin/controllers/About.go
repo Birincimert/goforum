@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"goblog/admin/helpers"
-	site_models "goblog/site/models"
+	"goforum/admin/helpers"
+	site_models "goforum/site/models"
 	"html/template"
 	"log"
 	"net/http"

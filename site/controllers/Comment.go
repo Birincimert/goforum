@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"goblog/site/helpers"
-	"goblog/site/models"
+	"goforum/site/helpers"
+	"goforum/site/models"
 
 	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"

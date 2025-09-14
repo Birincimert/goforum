@@ -39,6 +39,7 @@ func main() {
 	site_models.Contact{}.Migrate()
 	site_models.Comment{}.Migrate()
 	site_models.CommentVote{}.Migrate()
+	site_models.AuthorApplication{}.Migrate() // Author application table (pending applications)
 
 	http.ListenAndServe(":8080", config.Routes(store))
 }

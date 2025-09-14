@@ -26,6 +26,9 @@ func (ua Userauth) LoginRegisterPage(w http.ResponseWriter, r *http.Request, _ h
 	data := map[string]interface{}{}
 	data["Alert"] = helpers.GetAlert(w, r, ua.Store)
 	data["ReturnURL"] = r.URL.Query().Get("return_url")
+	if user, ok := helpers.GetCurrentUser(r, ua.Store); ok {
+		data["CurrentUser"] = user
+	}
 	view.ExecuteTemplate(w, "index", data)
 }
 

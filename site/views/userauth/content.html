@@ -1,0 +1,265 @@
+{{ define "content" }}
+<!-- Modern Login/Register Page -->
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1 class="auth-title">GoForum</h1>
+            <p class="auth-subtitle">Topluluğumuza katılın</p>
+        </div>
+
+        {{ if .Alert.is_alert }}
+        <div class="alert-message">
+            {{ .Alert.message }}
+        </div>
+        {{ end }}
+
+        <div class="auth-tabs">
+            <button id="show-login" class="auth-tab active">Giriş Yap</button>
+            <button id="show-register" class="auth-tab">Kayıt Ol</button>
+        </div>
+
+        <div class="auth-content">
+            <div id="login-form" class="auth-form active">
+                <form action="/site/login" method="post">
+                    <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
+                    <div class="form-group">
+                        <input type="text" class="form-input" name="username" placeholder="Kullanıcı adı" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-input" name="password" placeholder="Şifre" required>
+                    </div>
+                    <button type="submit" class="auth-button primary">Giriş Yap</button>
+                </form>
+            </div>
+
+            <div id="register-form" class="auth-form">
+                <form action="/site/register" method="post">
+                    <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" class="form-input" name="first_name" placeholder="Ad" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-input" name="last_name" placeholder="Soyad" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" class="form-input" name="email" placeholder="E-posta" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-input" name="username" placeholder="Kullanıcı adı" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-input" name="password" placeholder="Şifre" required>
+                    </div>
+                    <button type="submit" class="auth-button secondary">Kayıt Ol</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #314dcc 0%, #95b4c5 100%);
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #314dcc, #95b4c5);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 10px 0;
+    background: linear-gradient(135deg, #314dcc, #95b4c5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.auth-subtitle {
+    color: #5e6a7a;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.alert-message {
+    background: #fed7d7;
+    color: #c53030;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    border-left: 4px solid #fc8181;
+}
+
+.auth-tabs {
+    display: flex;
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 30px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.auth-tab.active {
+    background: white;
+    color: #2d3748;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.auth-button {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.auth-button.primary {
+    background: linear-gradient(135deg, #314dcc, #95b4c5);
+    color: white;
+}
+
+.auth-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.auth-button.secondary {
+    background: #2d3748;
+    color: white;
+}
+
+.auth-button.secondary:hover {
+    background: #1a202c;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(45, 55, 72, 0.3);
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 30px 20px;
+        margin: 10px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .auth-title {
+        font-size: 2rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginBtn = document.getElementById('show-login');
+    const registerBtn = document.getElementById('show-register');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    function showLogin() {
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+        loginBtn.classList.add('active');
+        registerBtn.classList.remove('active');
+    }
+
+    function showRegister() {
+        registerForm.classList.add('active');
+        loginForm.classList.remove('active');
+        registerBtn.classList.add('active');
+        loginBtn.classList.remove('active');
+    }
+
+    loginBtn.addEventListener('click', showLogin);
+    registerBtn.addEventListener('click', showRegister);
+
+    // Varsayılan olarak login formunu göster
+    showLogin();
+});
+</script>
+{{ end }}
+
+

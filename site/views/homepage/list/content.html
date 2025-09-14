@@ -20,13 +20,19 @@
             {{ range $index,$value := .Posts }}
             <div class="post-preview">
                 <a href="/yazilar/{{ $value.Slug }}">
-                    <h2 class="post-title">{{ $value.Title }}</h2>
-                    <h3 class="post-subtitle">{{ $value.Description }}</h3>
+                    <div class="d-flex">
+
+                        <div class="post-text-content">
+                            <h2 class="post-title text-primary">{{ $value.Title }}</h2>
+                        </div>
+                    </div>
+                    <p class="post-meta">
+                        {{ getDate $value.CreatedAt }} - {{ getCategory $value.CategoryID }}
+                        <span class="ml-5">Yapılan Yorum Sayısı: {{ sumReplies $value.Comments }}</span>
+                    </p>
                 </a>
-                <p class="post-meta">
-                    {{ getDate $value.CreatedAt }} - {{ getCategory $value.CategoryID }}
-                </p>
             </div>
+
             <hr />
             {{ end }}
         </div>
@@ -38,7 +44,51 @@
 
 
 <style>
-    
+
+    #writer {
+        position: fixed; /* Ekranın belirli bir yerine sabitle */
+        bottom: 1.5rem; /* Alttan 20 piksel boşluk */
+        left: 1.5rem; /* Sağdan 20 piksel boşluk */
+        z-index: 1000; /* Diğer elementlerin üzerinde olmasını sağla */
+        border: none;
+        background-color: #113357; /* Koyu arka plan */
+        color: white; /* Beyaz ok rengi */
+        cursor: pointer;
+        padding: 1rem; /* Buton içi boşluk */
+        border-radius: 45%; /* Yuvarlak şekil */
+        font-size: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    #scrollTopBtn:hover {
+        background-color: #333; /* Butonun üzerine gelince rengi koyulaştır */
+        transform: translateY(-2px); /* Butonun hafifçe yukarı çıkmasını sağla */
+    }
+
+
+    /* Yeni eklediğimiz sınıf için CSS stilleri */
+    .post-image-circle {
+        width: 5rem; /* Resmin genişliğini ayarlayın */
+        height: 5rem; /* Resmin yüksekliğini ayarlayın, genişlikle aynı olmalı */
+        border-radius: 50%; /* Resmi daire şekline getirir */
+        object-fit: cover; /* Resmin boyutuna göre sığacak şekilde keser, orantıyı korur */
+        margin-right: 15px; /* Resim ile yazı arasına boşluk bırakır */
+    }
+
+    /* Metinleri kapsayan div için */
+    .post-text-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Metni dikeyde ortalar */
+    }
+
+    /* Eğer d-flex sınıfı zaten mevcutsa, esnek hizalama için bu stilleri de ekleyebilirsiniz */
+    .d-flex {
+        display: flex;
+        align-items: center; /* Yan yana gelen elemanları dikeyde ortalar */
+    }
+
 #scrollTopBtn {
     display: none; /* Varsayılan olarak gizli */
     position: fixed; /* Ekranın belirli bir yerine sabitle */

@@ -19,12 +19,18 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.GET("/about", site.Homepage{Store: store}.About)
 	r.GET("/contact", site.Homepage{Store: store}.Contact)
 	r.POST("/contact/submit", site.HandleContactForm)
+	// Profile
+	r.GET("/profile", site.Homepage{Store: store}.Profile)
 
 	// Site Auth
 	r.GET("/login", site.Userauth{Store: store}.LoginRegisterPage)
 	r.POST("/site/login", site.Userauth{Store: store}.DoLogin)
 	r.POST("/site/register", site.Userauth{Store: store}.DoRegister)
 	r.GET("/site/logout", site.Userauth{Store: store}.Logout)
+
+	// Author Application (site)
+	aa := site.AuthorApplication{Store: store}
+	r.POST("/author/apply", aa.Apply)
 
 	//ADMIN
 	r.GET("/admin", admin.Dashboard{Store: store}.Index)
@@ -44,6 +50,12 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.GET("/admin/login", admin.Userops{Store: store}.Index)
 	r.POST("/admin/do_login", admin.Userops{Store: store}.Login)
 	r.GET("/admin/logout", admin.Userops{Store: store}.Logout)
+
+	//Admin Members management
+	members := admin.Members{Store: store}
+	r.GET("/admin/members", members.Index)
+	r.POST("/admin/members/approve/:id", members.Approve)
+	r.POST("/admin/members/reject/:id", members.Reject)
 
 	//Contact
 	r.GET("/admin/contacts", admin.Contacts{Store: store}.Index)

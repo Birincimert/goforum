@@ -1,0 +1,210 @@
+{{ define "content" }}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Üyeler</h1>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow mb-4 role-card" data-role="users" style="cursor:pointer">
+            <div class="card-body">
+                <h5 class="card-title">Kullanıcılar</h5>
+                <p class="card-text">Siteye kayıtlı normal kullanıcılar.</p>
+                <p>{{ len .Users }} kayıtlı kullanıcı</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow mb-4 role-card" data-role="authors" style="cursor:pointer">
+            <div class="card-body">
+                <h5 class="card-title">Yazarlar</h5>
+                <p class="card-text">Onaylanmış yazar hesapları.</p>
+                <p>{{ len .Yazars }} kayıtlı yazar</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow mb-4 role-card" data-role="admins" style="cursor:pointer">
+            <div class="card-body">
+                <h5 class="card-title">Adminler</h5>
+                <p class="card-text">Yönetici hesapları.</p>
+                <p>{{ len .Admins }} kayıtlı admin</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Members area: will show applications when button clicked, and role tables when cards clicked -->
+<div class="card shadow mb-4" id="members-card">
+    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+        <h6 id="members-subtitle" class="m-0 font-weight-bold text-primary">Kullanıcılar</h6>
+        <div>
+            <button id="show-apps-btn" class="btn btn-sm btn-primary" type="button">Yeni Yazar Başvuruları</button>
+        </div>
+    </div>
+    <div class="card-body" id="members-body">
+        <!-- Applications table (pending) -->
+        {{ if .Applications }}
+        <div id="applications-table" style="display:none;">
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>İsim</th>
+                        <th>E-posta</th>
+                        <th>Kullanıcı Adı</th>
+                        <th>Biyografi</th>
+                        <th>Durum</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ range .Applications }}
+                    <tr>
+                        <td>{{ .ID }}</td>
+                        <td>{{ .FirstName }} {{ .LastName }}</td>
+                        <td>{{ .Email }}</td>
+                        <td>{{ .Username }}</td>
+                        <td style="max-width:300px">{{ .Bio }}</td>
+                        <td>{{ .Status }}</td>
+                        <td>
+                            <form action="/admin/members/approve/{{ .ID }}" method="post" style="display:inline-block">
+                                <button class="btn btn-sm btn-success" type="submit">Onayla</button>
+                            </form>
+                            <form action="/admin/members/reject/{{ .ID }}" method="post" style="display:inline-block">
+                                <button class="btn btn-sm btn-danger" type="submit">Reddet</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </div>
+        </div>
+        {{ else }}
+        <p id="no-apps" style="display:none;">Henüz yeni başvuru yok.</p>
+        {{ end }}
+
+        <!-- Pre-rendered role-based user tables (users shown by default) -->
+        <div id="users-table" style="display:block; margin-top:10px;">
+            <h6>Kullanıcılar</h6>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr><th>İsim</th><th>E-posta</th><th>Kullanıcı Adı</th><th>Kayıt Zamanı</th><th>Rol</th></tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Users }}
+                        <tr>
+                            <td>{{ .FirstName }} {{ .LastName }}</td>
+                            <td>{{ .Email }}</td>
+                            <td>{{ .Username }}</td>
+                            <td>{{ .CreatedAt.Format "02.01.2006 15:04" }}</td>
+                            <td>{{ .Role }}</td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="authors-table" style="display:none; margin-top:10px;">
+            <h6>Yazarlar</h6>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr><th>İsim</th><th>E-posta</th><th>Kullanıcı Adı</th><th>Kayıt Zamanı</th><th>Rol</th></tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Yazars }}
+                        <tr>
+                            <td>{{ .FirstName }} {{ .LastName }}</td>
+                            <td>{{ .Email }}</td>
+                            <td>{{ .Username }}</td>
+                            <td>{{ .CreatedAt.Format "02.01.2006 15:04" }}</td>
+                            <td>{{ .Role }}</td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="admins-table" style="display:none; margin-top:10px;">
+            <h6>Adminler</h6>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr><th>İsim</th><th>E-posta</th><th>Kullanıcı Adı</th><th>Kayıt Zamanı</th><th>Rol</th></tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Admins }}
+                        <tr>
+                            <td>{{ .FirstName }} {{ .LastName }}</td>
+                            <td>{{ .Email }}</td>
+                            <td>{{ .Username }}</td>
+                            <td>{{ .CreatedAt.Format "02.01.2006 15:04" }}</td>
+                            <td>{{ .Role }}</td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// Role card click handling: show corresponding table in members-body and update header
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    var roleCards = document.querySelectorAll('.role-card');
+    var apps = document.getElementById('applications-table');
+    var noApps = document.getElementById('no-apps');
+    var usersTable = document.getElementById('users-table');
+    var authorsTable = document.getElementById('authors-table');
+    var adminsTable = document.getElementById('admins-table');
+    var heading = document.getElementById('members-subtitle');
+    var showAppsBtn = document.getElementById('show-apps-btn');
+
+    function hideAllTables(){
+      if(apps) apps.style.display = 'none';
+      if(noApps) noApps.style.display = 'none';
+      usersTable.style.display = 'none';
+      authorsTable.style.display = 'none';
+      adminsTable.style.display = 'none';
+    }
+
+    // default: show users table
+    hideAllTables();
+    usersTable.style.display = 'block';
+    if(heading) heading.textContent = 'Kullanıcılar';
+
+    roleCards.forEach(function(card){
+      card.addEventListener('click', function(){
+        var role = card.getAttribute('data-role');
+        hideAllTables();
+        if(role === 'users') { usersTable.style.display = 'block'; heading.textContent = 'Kullanıcılar'; }
+        if(role === 'authors') { authorsTable.style.display = 'block'; heading.textContent = 'Yazarlar'; }
+        if(role === 'admins') { adminsTable.style.display = 'block'; heading.textContent = 'Adminler'; }
+      });
+    });
+
+    // Show applications when button clicked
+    if(showAppsBtn){
+      showAppsBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        hideAllTables();
+        if(apps) apps.style.display = 'block';
+        if(noApps && !apps) noApps.style.display = 'block';
+        heading.textContent = 'Yeni Yazar Başvuruları';
+      });
+    }
+
+  });
+})();
+</script>
+
+{{ end }}

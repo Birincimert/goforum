@@ -72,23 +72,19 @@ func (dashboard Dashboard) Add(w http.ResponseWriter, r *http.Request, params ht
 	categoryID, _ := strconv.Atoi(r.FormValue("blog-category"))
 	content := r.FormValue("blog-content")
 
-	//Upload
+	//Upload (opsiyonel)
 	r.ParseMultipartForm(10 << 20)
-	file, header, err := r.FormFile("blog-picture")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	f, err := os.OpenFile("uploads/"+header.Filename, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	_, err = io.Copy(f, file)
-	//Upload end
-	if err != nil {
-		fmt.Println(err)
-		return
+	var pictureURL string
+	if file, header, err := r.FormFile("blog-picture"); err == nil && header != nil && header.Filename != "" {
+		// uploads klasörü yoksa oluştur
+		if _, statErr := os.Stat("uploads"); os.IsNotExist(statErr) {
+			_ = os.MkdirAll("uploads", 0755)
+		}
+		f, openErr := os.OpenFile("uploads/"+header.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+		if openErr == nil {
+			_, _ = io.Copy(f, file)
+			pictureURL = "uploads/" + header.Filename
+		}
 	}
 
 	models.Post{
@@ -97,7 +93,7 @@ func (dashboard Dashboard) Add(w http.ResponseWriter, r *http.Request, params ht
 		Description: description,
 		CategoryID:  categoryID,
 		Content:     content,
-		Picture_url: "uploads/" + header.Filename,
+		Picture_url: pictureURL,
 	}.Add()
 	helpers.SetAlert(w, r, "Kayıt başarıyla eklendi", dashboard.Store)
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)

@@ -98,14 +98,10 @@
 
                 <div class="comments-section mt-5 pt-4">
                     <h3 id="comments" class="comments-title mb-3" style="font-family: 'Playfair Display', serif; font-weight: 600; font-size: 1.9rem; color: #111111; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.75rem;">
-                        <i class="fas fa-comments" style="color: #111111;"></i> Yorumlar (<span id="total-comments" style="color: #111111;">{{ add (len .Post.Comments) (sumReplies .Post.Comments) }}</span>)
+                        <i class="fas fa-comments" style="color: #111111;"></i> Yorumlar (<span id="total-comments" style="color: #111111;">{{ sumReplies .Post.Comments }}</span>)
                     </h3>
 
                     <div class="comment-form-container mb-4" style="background: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #eeeeee;">
-                        {{ if .CurrentUser }}
-                        <div class="mb-3" style="color:#111111;">
-                            Şu anda <strong>{{ .CurrentUser.Username }}</strong> kullanıcısı olarak oturum açıldı.
-                        </div>
                         <h5 class="mb-4" style="font-family: 'Lato', sans-serif; font-weight: 600; font-size: 1.3rem; color: #4b4b4b;">
                             <i class="fas fa-pen-alt" style="color: #111111;"></i> Yorum Ekleyin
                         </h5>
@@ -119,92 +115,7 @@
                             <button type="submit" class="btn btn-dark px-4 py-2" style="border-radius: 28px; font-weight: 500; background-color: #111111; border-color: #111111;">
                                 <i class="fas fa-paper-plane me-2"></i> Gönder
                             </button>
-                            <a href="/site/logout" class="btn btn-link">Çıkış yap</a>
                         </form>
-                        {{ else }}
-                        <div id="auth-section" class="mb-3" style="color:#111111;">
-                            {{ if .Alert.is_alert }}
-                                <div class="alert alert-warning mb-2">{{ .Alert.message }}</div>
-                            {{ end }}
-                            Yorum yazabilmek veya beğenip yanıtlayabilmek için giriş yapın veya kayıt olun.
-                        </div>
-                        <div class="mb-3 d-flex gap-2">
-                            <button type="button" id="cmt-show-login" class="btn btn-dark" style="border-radius: 999px; padding: 8px 18px;">Giriş Yap</button>
-                            <button type="button" id="cmt-show-register" class="btn btn-outline-dark" style="border-radius: 999px; padding: 8px 18px;">Kayıt Ol</button>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; display:none;" id="cmt-login-wrap">
-                                    <div class="card-header bg-white" style="border-bottom: 1px solid #eee;">
-                                        <h5 class="mb-0">Giriş Yap</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <form id="cmt-login-form" action="/site/login" method="post">
-                                            <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
-                                            <div class="form-group mb-3">
-                                                <label class="form-label">Kullanıcı adı</label>
-                                                <input type="text" class="form-control" name="username" placeholder="Kullanıcı adı" required>
-                                            </div>
-                                            <div class="form-group mb-3">
-                                                <label class="form-label">Şifre</label>
-                                                <input type="password" class="form-control" name="password" placeholder="Şifre" required>
-                                            </div>
-                                            <button class="btn btn-dark" style="border-radius: 999px; padding: 8px 18px;">Giriş Yap</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; display:none;" id="cmt-register-wrap">
-                                    <div class="card-header bg-white" style="border-bottom: 1px solid #eee;">
-                                        <h5 class="mb-0">Kayıt Ol</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <form id="cmt-register-form" action="/site/register" method="post">
-                                            <input type="hidden" name="return_url" value="{{ .ReturnURL }}">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group mb-3">
-                                                        <label class="form-label">Ad</label>
-                                                        <input type="text" class="form-control" name="first_name" placeholder="Ad" required>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group mb-3">
-                                                        <label class="form-label">Soyad</label>
-                                                        <input type="text" class="form-control" name="last_name" placeholder="Soyad" required>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group mb-3">
-                                                <label class="form-label">E-posta</label>
-                                                <input type="email" class="form-control" name="email" placeholder="E-posta" required>
-                                            </div>
-                                            <div class="form-group mb-3">
-                                                <label class="form-label">Kullanıcı adı</label>
-                                                <input type="text" class="form-control" name="username" placeholder="Kullanıcı adı" required>
-                                            </div>
-                                            <div class="form-group mb-4">
-                                                <label class="form-label">Şifre</label>
-                                                <input type="password" class="form-control" name="password" placeholder="Şifre" required>
-                                            </div>
-                                            <button class="btn btn-outline-dark" style="border-radius: 999px; padding: 8px 18px;">Kayıt Ol</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <script>
-                            (function(){
-                                const showL = document.getElementById('cmt-show-login');
-                                const showR = document.getElementById('cmt-show-register');
-                                const wL = document.getElementById('cmt-login-wrap');
-                                const wR = document.getElementById('cmt-register-wrap');
-                                if(showL){ showL.addEventListener('click', ()=>{ if(wL){wL.style.display='block';} if(wR){wR.style.display='none';} }); }
-                                if(showR){ showR.addEventListener('click', ()=>{ if(wR){wR.style.display='block';} if(wL){wL.style.display='none';} }); }
-                            })();
-                        </script>
-                        {{ end }}
                     </div>
 
                     <div id="comments-list">
@@ -382,6 +293,10 @@
 <script>
     // Oturum durumu (body data-auth üzerinden okunur)
     const IS_AUTH = (document.body.getAttribute('data-auth') === '1');
+    function redirectToLogin() {
+        const current = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+        window.location.href = '/login?return_url=' + current;
+    }
 
     // (Removed) toast kullanımı yerine sayfada login/kayıt alanına kaydırma uygulanıyor
     // Toplam yorum ve yanıt sayısını hesapla
@@ -454,19 +369,8 @@
         const button = event.currentTarget;
         const commentId = button.getAttribute('data-comment-id');
 
-        if (!IS_AUTH) {
-            const wL = document.getElementById('cmt-login-wrap');
-            const wR = document.getElementById('cmt-register-wrap');
-            if (wL) { wL.style.display = 'block'; }
-            if (wR) { wR.style.display = 'none'; }
-            const target = document.getElementById('auth-section') || document.getElementById('comments');
-            if (target && typeof target.scrollIntoView === 'function') {
-                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-            return;
-        }
+        if (!IS_AUTH) { redirectToLogin(); return; }
+        if (!IS_AUTH) { redirectToLogin(); return; }
 
         // Backend'e oy gönder (toggle mantığı sunucuda)
         fetch(`/comment/upvote/${commentId}`, {
@@ -504,19 +408,6 @@
         document.querySelectorAll('.reply-btn').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (!IS_AUTH) {
-                    const wL = document.getElementById('cmt-login-wrap');
-                    const wR = document.getElementById('cmt-register-wrap');
-                    if (wL) { wL.style.display = 'block'; }
-                    if (wR) { wR.style.display = 'none'; }
-                    const target = document.getElementById('auth-section') || document.getElementById('comments');
-                    if (target && typeof target.scrollIntoView === 'function') {
-                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    } else {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                    return;
-                }
                 const commentId = this.getAttribute('data-comment-id');
                 const author = this.getAttribute('data-comment-author') || '';
                 const replyForm = document.getElementById(`reply-form-${commentId}`);
@@ -559,10 +450,6 @@
         // Beğeni butonlarını başlat
         const likeButtons = document.querySelectorAll('.like-btn');
         likeButtons.forEach(button => button.addEventListener('click', handleLikeClick));
-        // Girişsiz görünümde tüm like butonlarını nötrle
-        if (!IS_AUTH) {
-            likeButtons.forEach(button => updateLikeButton(button, false));
-        }
 
         // localStorage'dan beğeni durumlarını yükle
         setTimeout(() => { loadLikeStates(); }, 100);
@@ -582,7 +469,7 @@ window.onscroll = function() {
 function scrollFunction() {
     const scrollTopBtn = document.getElementById("scrollTopBtn");
     // Sayfanın 200 piksel aşağı kaydırıldığında butonu göster
-    if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
         scrollTopBtn.style.display = "block";
     } else {
         scrollTopBtn.style.display = "none";

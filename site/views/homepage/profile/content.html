@@ -1,0 +1,238 @@
+{{ define "content" }}
+<!-- Modern Profile Page -->
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">{{ slice .CurrentUser.Username 0 1 }}</div>
+        <h1 class="profile-name">{{ .CurrentUser.FirstName }} {{ .CurrentUser.LastName }}</h1>
+        <p class="profile-username">@{{ .CurrentUser.Username }}</p>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-card">
+            <div class="card-header">
+                <h3>Hesap Bilgileri</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-user"></i>
+                        <span>Ad Soyad</span>
+                    </div>
+                    <div class="info-value">{{ .CurrentUser.FirstName }} {{ .CurrentUser.LastName }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-at"></i>
+                        <span>Kullanıcı Adı</span>
+                    </div>
+                    <div class="info-value">{{ .CurrentUser.Username }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-envelope"></i>
+                        <span>E-posta</span>
+                    </div>
+                    <div class="info-value">{{ .CurrentUser.Email }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-calendar"></i>
+                        <span>Üyelik Tarihi</span>
+                    </div>
+                    <div class="info-value">{{ .CurrentUser.CreatedAt.Format "02.01.2006" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <a href="/" class="action-button primary">
+                <i class="fas fa-home"></i>
+                <span>Ana Sayfaya Dön</span>
+            </a>
+            <a href="/site/logout" class="action-button danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Çıkış Yap</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #112841 0%, #acd2e8 100%);
+    padding: 40px 20px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.profile-avatar {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #112841, #95b4c5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem; /* sadece ilk harfi göstermek için */
+    text-transform: uppercase;
+    font-weight: 700;
+    color: white;
+    margin: 5rem auto 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: 4px solid white;
+}
+.profile-avatar::first-letter { font-size: 3rem; text-transform: uppercase; }
+
+.profile-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 10px 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.profile-username {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+}
+
+.profile-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #112841, #95b4c5);
+    color: white;
+    padding: 25px 30px;
+    text-align: center;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 30px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.info-label i {
+    width: 20px;
+    color: #112841;
+}
+
+.info-value {
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.profile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.action-button.primary {
+    background: white;
+    color: #112841;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.action-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.action-button.danger {
+    background: #e53e3e;
+    color: white;
+    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+}
+
+.action-button.danger:hover {
+    background: #c53030;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 20px 15px;
+    }
+    
+    .profile-avatar { width: 100px; height: 100px; }
+    
+    .profile-name {
+        font-size: 2rem;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .profile-actions {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{{ end }}
+
+

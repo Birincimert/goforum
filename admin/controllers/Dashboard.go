@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"goforum/admin/helpers"
 	"goforum/admin/models"
+	sitemodels "goforum/site/models"
 	"html/template"
 	"io"
 	"net/http"
@@ -87,6 +88,11 @@ func (dashboard Dashboard) Add(w http.ResponseWriter, r *http.Request, params ht
 		}
 	}
 
+	// Görsel yüklenmediyse varsayılan ana sayfa görselini kullan
+	if pictureURL == "" {
+		pictureURL = "uploads/mainpage.jpg"
+	}
+
 	models.Post{
 		Title:       title,
 		Slug:        slug,
@@ -105,6 +111,8 @@ func (dashboard Dashboard) Delete(w http.ResponseWriter, r *http.Request, params
 	}
 
 	post := models.Post{}.Get(params.ByName("id"))
+	// İlgili tüm yorumları da temizle
+	_ = sitemodels.Comment{}.DeleteByPostID(post.ID)
 	post.Delete()
 	helpers.SetAlert(w, r, "Kayıt başarıyla silindi", dashboard.Store)
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)

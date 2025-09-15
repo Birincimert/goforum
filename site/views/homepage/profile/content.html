@@ -5,6 +5,17 @@
         <div class="profile-avatar">{{ slice .CurrentUser.Username 0 1 }}</div>
         <h1 class="profile-name">{{ .CurrentUser.FirstName }} {{ .CurrentUser.LastName }}</h1>
         <p class="profile-username">@{{ .CurrentUser.Username }}</p>
+
+        <div class="profile-actions-top">
+            <a href="/profile/new-post" class="btn-primary">
+                <i class="fas fa-pen"></i>
+                <span>Bir Forum Yaz</span>
+            </a>
+            <a href="/site/logout" class="btn-outline">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Çıkış Yap</span>
+            </a>
+        </div>
     </div>
 
     <div class="profile-content">
@@ -12,227 +23,123 @@
             <div class="card-header">
                 <h3>Hesap Bilgileri</h3>
             </div>
-            <div class="card-body">
+            <div class="card-body grid-2">
                 <div class="info-item">
-                    <div class="info-label">
-                        <i class="fas fa-user"></i>
-                        <span>Ad Soyad</span>
-                    </div>
+                    <div class="info-label"><i class="fas fa-user"></i> Ad Soyad</div>
                     <div class="info-value">{{ .CurrentUser.FirstName }} {{ .CurrentUser.LastName }}</div>
                 </div>
-                
                 <div class="info-item">
-                    <div class="info-label">
-                        <i class="fas fa-at"></i>
-                        <span>Kullanıcı Adı</span>
-                    </div>
+                    <div class="info-label"><i class="fas fa-at"></i> Kullanıcı Adı</div>
                     <div class="info-value">{{ .CurrentUser.Username }}</div>
                 </div>
-                
                 <div class="info-item">
-                    <div class="info-label">
-                        <i class="fas fa-envelope"></i>
-                        <span>E-posta</span>
-                    </div>
+                    <div class="info-label"><i class="fas fa-envelope"></i> E-posta</div>
                     <div class="info-value">{{ .CurrentUser.Email }}</div>
                 </div>
-                
                 <div class="info-item">
-                    <div class="info-label">
-                        <i class="fas fa-calendar"></i>
-                        <span>Üyelik Tarihi</span>
-                    </div>
+                    <div class="info-label"><i class="fas fa-calendar"></i> Üyelik Tarihi</div>
                     <div class="info-value">{{ .CurrentUser.CreatedAt.Format "02.01.2006" }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="profile-actions">
-            <a href="/" class="action-button primary">
-                <i class="fas fa-home"></i>
-                <span>Ana Sayfaya Dön</span>
-            </a>
-            <a href="/site/logout" class="action-button danger">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Çıkış Yap</span>
-            </a>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="posts"><i class="fas fa-newspaper"></i> Yazılarım ({{ len .MyPosts }})</button>
+            <button class="tab-btn" data-tab="comments"><i class="fas fa-comment"></i> Yorumlarım ({{ len .MyComments }})</button>
+            <button class="tab-btn" data-tab="likes"><i class="fas fa-heart"></i> Beğendiklerim ({{ len .LikedComments }})</button>
+        </div>
+
+        <div class="tab-content active" id="tab-posts">
+          {{ range .MyPosts }}
+            <div class="list-item">
+              <div class="list-left">
+                <a class="list-title" href="/post/{{ .Slug }}">{{ .Title }}</a>
+                <div class="list-sub">{{ .Description }}</div>
+              </div>
+              <div class="list-right actions">
+                <span class="list-date">{{ .CreatedAt.Format "02.01.2006 15:04" }}</span>
+                <a class="btn-del" href="/profile/post/delete/{{ .ID }}" onclick="return confirm('Bu yazıyı ve tüm yorumlarını silmek istediğinize emin misiniz?');" title="Sil"><i class="fas fa-trash"></i></a>
+              </div>
+            </div>
+          {{ else }}
+            <div class="empty">Henüz yazınız yok. İlk yazınızı oluşturmak için yukarıdan “Bir Forum Yaz” butonuna tıklayın.</div>
+          {{ end }}
+        </div>
+
+        <div class="tab-content" id="tab-comments">
+          {{ range .MyComments }}
+            <div class="list-item">
+              <div class="list-left">
+                <div class="list-title">{{ .Content }}</div>
+                <div class="list-sub">Yazı #{{ .PostID }} — {{ .CreatedAt.Format "02.01.2006 15:04" }}</div>
+              </div>
+            </div>
+          {{ else }}
+            <div class="empty">Henüz yorum yapmamışsınız.</div>
+          {{ end }}
+        </div>
+
+        <div class="tab-content" id="tab-likes">
+          {{ range .LikedComments }}
+            <div class="list-item">
+              <div class="list-left">
+                <div class="list-title">{{ .Content }}</div>
+                <div class="list-sub">Yazı #{{ .PostID }} — {{ .CreatedAt.Format "02.01.2006 15:04" }}</div>
+              </div>
+            </div>
+          {{ else }}
+            <div class="empty">Beğendiğiniz yorum bulunmuyor.</div>
+          {{ end }}
         </div>
     </div>
 </div>
 
 <style>
-.profile-container {
-    min-height: 100vh;
-    background: linear-gradient(180deg, #112841 0%, #acd2e8 100%);
-    padding: 40px 20px;
-}
-
-.profile-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.profile-avatar {
-    width: 8rem;
-    height: 8rem;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #112841, #95b4c5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 5rem; /* sadece ilk harfi göstermek için */
-    text-transform: uppercase;
-    font-weight: 700;
-    color: white;
-    margin: 5rem auto 1.5rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    border: 4px solid white;
-}
-.profile-avatar::first-letter { font-size: 3rem; text-transform: uppercase; }
-
-.profile-name {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: white;
-    margin: 0 0 10px 0;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.profile-username {
-    font-size: 1.2rem;
-    color: rgba(255,255,255,0.8);
-    margin: 0;
-}
-
-.profile-content {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.profile-card {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    overflow: hidden;
-    margin-bottom: 30px;
-}
-
-.card-header {
-    background: linear-gradient(135deg, #112841, #95b4c5);
-    color: white;
-    padding: 25px 30px;
-    text-align: center;
-}
-
-.card-header h3 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.card-body {
-    padding: 30px;
-}
-
-.info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.info-item:last-child {
-    border-bottom: none;
-}
-
-.info-label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 600;
-    color: #4a5568;
-}
-
-.info-label i {
-    width: 20px;
-    color: #112841;
-}
-
-.info-value {
-    color: #2d3748;
-    font-weight: 500;
-}
-
-.profile-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.action-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 16px 24px;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
-}
-
-.action-button.primary {
-    background: white;
-    color: #112841;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.action-button.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.action-button.danger {
-    background: #e53e3e;
-    color: white;
-    box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
-}
-
-.action-button.danger:hover {
-    background: #c53030;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
-}
-
-@media (max-width: 768px) {
-    .profile-container {
-        padding: 20px 15px;
-    }
-    
-    .profile-avatar { width: 100px; height: 100px; }
-    
-    .profile-name {
-        font-size: 2rem;
-    }
-    
-    .card-body {
-        padding: 20px;
-    }
-    
-    .info-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .profile-actions {
-        grid-template-columns: 1fr;
-    }
-}
+.profile-container{min-height:100vh;background:linear-gradient(180deg,#0f2a44 0%,#f5fbff 100%);padding:32px 16px}
+.profile-header{text-align:center;margin-bottom:24px}
+.profile-avatar{width:88px;height:88px;border-radius:50%;background:#103450;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:40px;margin:32px auto 12px;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.profile-name{color:#fff;margin:0 0 6px 0;font-weight:700}
+.profile-username{color:rgba(255,255,255,.85);margin:0}
+.profile-actions-top{display:flex;gap:12px;justify-content:center;margin-top:12px}
+.btn-primary,.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:600}
+.btn-primary{background:#0d3a66;color:#fff}
+.btn-primary:hover{background:#0a2f52}
+.btn-outline{background:#fff;color:#0d3a66;border:1px solid #cfe2f3}
+.btn-outline:hover{background:#f5f9ff}
+.profile-content{max-width:860px;margin:0 auto}
+.profile-card{background:#fff;border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);overflow:hidden;margin-bottom:20px}
+.card-header{background:linear-gradient(135deg,#0d3a66,#589dcf);color:#fff;padding:16px 20px}
+.card-body{padding:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info-item{background:#f8fbff;border:1px solid #e8f0f7;border-radius:10px;padding:12px}
+.info-label{color:#375a7f;font-weight:600;margin-bottom:6px}
+.info-value{color:#234}
+.tabs{display:flex;gap:10px;margin:10px 0 14px}
+.tab-btn{padding:8px 12px;border-radius:10px;border:1px solid #dbe7f3;background:#fff;color:#134;cursor:pointer;font-weight:600}
+.tab-btn.active{background:#0d3a66;color:#fff;border-color:#0d3a66}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.list-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #e7eff7;border-radius:12px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit}
+.list-title{font-weight:700;color:#102a43;text-decoration:none}
+.list-title:hover{text-decoration:underline}
+.actions{display:flex;align-items:center;gap:10px}
+.btn-del{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid #f1c9c9;background:#fff;color:#b11;}
+.btn-del:hover{background:#ffecec;border-color:#f3b7b7}
+.list-date{color:#678;white-space:nowrap;font-size:.9rem}
+.empty{background:#fff;border:1px dashed #bdd3e6;color:#456;border-radius:12px;padding:16px;text-align:center}
+@media(max-width:768px){.grid-2{grid-template-columns:1fr}.profile-actions-top{flex-direction:column}.list-item{flex-direction:column;align-items:flex-start}.actions{align-self:flex-end}.list-right{display:flex;gap:8px}}
 </style>
+<script>
+  (function(){
+    const btns=document.querySelectorAll('.tab-btn');
+    const tabs={posts:document.getElementById('tab-posts'),comments:document.getElementById('tab-comments'),likes:document.getElementById('tab-likes')};
+    btns.forEach(b=>b.addEventListener('click',()=>{
+      btns.forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      b.classList.add('active');
+      const key=b.getAttribute('data-tab');
+      if(tabs[key]) tabs[key].classList.add('active');
+    }));
+  })();
+</script>
 {{ end }}
-
-

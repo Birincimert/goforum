@@ -11,6 +11,7 @@ type Post struct {
 	gorm.Model
 	Title, Slug, Description, Content, Picture_url string
 	CategoryID                                     int
+	UserID                                         uint
 	Comments                                       []Comment
 }
 

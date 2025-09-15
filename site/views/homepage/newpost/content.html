@@ -1,0 +1,54 @@
+{{ define "content" }}
+<section class="np-wrap">
+  <div class="np-card">
+    <h1 class="np-title"><i class="fas fa-pen"></i> Yeni Yazı Oluştur</h1>
+    <form action="/profile/new-post" method="post" enctype="multipart/form-data" class="np-form">
+      <div class="np-row">
+        <label for="blog-title">Başlık</label>
+        <input type="text" id="blog-title" name="blog-title" required placeholder="Yazı başlığı">
+      </div>
+      <div class="np-row">
+        <label for="blog-category">Kategori</label>
+        <select id="blog-category" name="blog-category" required>
+          <option value="" disabled selected>Bir kategori seçin</option>
+          {{ range .Categories }}
+            <option value="{{ .ID }}">{{ .Title }}</option>
+          {{ end }}
+        </select>
+      </div>
+      <div class="np-row">
+        <label for="blog-desc">Kısa Açıklama</label>
+        <input type="text" id="blog-desc" name="blog-desc" maxlength="200" placeholder="Kısa açıklama (max 200)">
+      </div>
+      <div class="np-row">
+        <label for="blog-picture">Kapak Görseli (opsiyonel)</label>
+        <input type="file" id="blog-picture" name="blog-picture" accept="image/*">
+      </div>
+      <div class="np-row">
+        <label for="blog-content">İçerik</label>
+        <textarea id="blog-content" name="blog-content" rows="10" required placeholder="Yazı içeriği..."></textarea>
+      </div>
+      <div class="np-actions">
+        <a href="/profile" class="btn-light">Vazgeç</a>
+        <button type="submit" class="btn-darkblue">Yayınla</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<style>
+.np-wrap{min-height:100vh;background:linear-gradient(180deg,#0f2a44 0%,#f5fbff 100%);padding:32px 16px}
+.np-card{max-width:900px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.08);padding:22px}
+.np-title{margin:0 0 12px 0;color:#0d3a66;display:flex;align-items:center;gap:10px}
+.np-form{display:grid;gap:14px}
+.np-row{display:flex;flex-direction:column;gap:8px}
+.np-row label{font-weight:700;color:#123}
+.np-row input[type=text],.np-row select,.np-row textarea{border:1px solid #d6e6f5;border-radius:10px;padding:10px 12px;outline:none}
+.np-row input[type=text]:focus,.np-row select:focus,.np-row textarea:focus{border-color:#0d3a66;box-shadow:0 0 0 3px rgba(13,58,102,.08)}
+.np-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+.btn-light{background:#fff;border:1px solid #cfe2f3;color:#123;padding:10px 16px;border-radius:10px;text-decoration:none}
+.btn-darkblue{background:#0d3a66;color:#fff;border:0;padding:10px 16px;border-radius:10px;cursor:pointer}
+.btn-darkblue:hover{background:#0a2f52}
+</style>
+{{ end }}
+

@@ -113,6 +113,38 @@ func (comment Comment) GetAllComments() ([]Comment, error) {
 	return comments, nil
 }
 
+// GetByUserID: kullanıcının yaptığı yorumları getirir
+func (comment Comment) GetByUserID(userID uint) ([]Comment, error) {
+	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+	var comments []Comment
+	if err := db.Where("user_id = ?", userID).Order("created_at desc").Find(&comments).Error; err != nil {
+		return nil, err
+	}
+	return comments, nil
+}
+
+// GetLikedCommentsByUser: kullanıcının beğendiği yorumları getirir
+func GetLikedCommentsByUser(userID uint) ([]Comment, error) {
+	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+	var comments []Comment
+	// Join ile value = 1 olan beğenileri al, soft-deleted yorumları dışla
+	if err := db.Table("comments").
+		Select("comments.*").
+		Joins("JOIN comment_votes ON comment_votes.comment_id = comments.id").
+		Where("comment_votes.user_id = ? AND comment_votes.value = 1 AND comments.deleted_at IS NULL", userID).
+		Order("comments.created_at desc").
+		Find(&comments).Error; err != nil {
+		return nil, err
+	}
+	return comments, nil
+}
+
 // Yorumu sil (yanıtlarıyla birlikte)
 func (comment Comment) Delete(id uint) error {
 	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
@@ -142,4 +174,14 @@ func (comment Comment) Delete(id uint) error {
 	}
 
 	return deleteRecursive(id)
+}
+
+// DeleteByPostID: bir posta ait tüm yorumları (yanıtlar dahil) soft delete eder
+func (comment Comment) DeleteByPostID(postID uint) error {
+	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
+	if err != nil {
+		return err
+	}
+	// Aynı post_id tüm yanıtlar için de bulunduğundan tek sorgu yeterli
+	return db.Where("post_id = ?", postID).Delete(&Comment{}).Error
 }

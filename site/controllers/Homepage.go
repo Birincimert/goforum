@@ -99,6 +99,24 @@ func (homepage Homepage) Detail(w http.ResponseWriter, r *http.Request, params h
 			return total
 		},
 		"add": func(a int, b int) int { return a + b },
+		// Detay şablonunda kullanılan yardımcılar
+		"getAuthor": func(userID uint) adminmodels.User {
+			if userID == 0 {
+				return adminmodels.User{}
+			}
+			return adminmodels.User{}.Get("id = ?", userID)
+		},
+		"isAdminPost": func(userID uint) bool { return userID == 0 },
+		"firstLetter": func(s string) string {
+			if s == "" {
+				return "?"
+			}
+			r := []rune(s)
+			return strings.ToUpper(string(r[0]))
+		},
+		"getDate": func(t time.Time) string {
+			return fmt.Sprintf("%02d.%02d.%d", t.Day(), int(t.Month()), t.Year())
+		},
 	}
 	view, err := template.New("detail").Funcs(funcMap).ParseFiles(helpers.Include("homepage/detail")...)
 	if err != nil {

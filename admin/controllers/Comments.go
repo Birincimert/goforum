@@ -9,6 +9,8 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"
+	"gorm.io/driver/sqlserver"
+	"gorm.io/gorm"
 )
 
 type Comments struct {
@@ -17,10 +19,17 @@ type Comments struct {
 
 // Index: List posts with their comment counts
 func (comments Comments) Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	// Yazıları yorumlarıyla birlikte al
+	// Yazıları al (yorum sayısını DB'den sayacağız)
 	posts := models.Post{}.GetAll()
 
-	// Görünüm verisi hazırlanır: her yazı için toplam yorum sayısı (yanıtlar dahil)
+	// DB bağlantısı
+	db, err := gorm.Open(sqlserver.Open(models.Dns), &gorm.Config{})
+	if err != nil {
+		http.Error(w, "Veritabanı bağlantı hatası", http.StatusInternalServerError)
+		return
+	}
+
+	// Görünüm verisi hazırlanır: her yazı için toplam yorum sayısı (tüm yanıt seviyeleri dahil)
 	type postWithCount struct {
 		ID           uint
 		Title        string
@@ -30,12 +39,10 @@ func (comments Comments) Index(w http.ResponseWriter, r *http.Request, _ httprou
 
 	var list []postWithCount
 	for _, p := range posts {
-		total := 0
-		for _, c := range p.Comments {
-			total++
-			total += len(c.Replies)
-		}
-		list = append(list, postWithCount{ID: p.ID, Title: p.Title, Slug: p.Slug, CommentCount: total})
+		var cnt int64
+		// Soft delete edilenleri dışla
+		db.Model(&models.Comment{}).Where("post_id = ? AND deleted_at IS NULL", p.ID).Count(&cnt)
+		list = append(list, postWithCount{ID: p.ID, Title: p.Title, Slug: p.Slug, CommentCount: int(cnt)})
 	}
 
 	view := make(map[string]interface{})

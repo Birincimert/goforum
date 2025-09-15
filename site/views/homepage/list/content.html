@@ -16,29 +16,31 @@
 <!-- Main Content-->
 <div class="container">
     <div class="row">
-        <div class="col-lg-8 col-md-10 mx-auto">
+        <div class="col-lg-10 col-md-12 mx-auto">
             {{ range $index,$value := .Posts }}
             <div class="post-preview">
                 <a href="/yazilar/{{ $value.Slug }}" class="post-link">
                     <div class="d-flex">
-                        <div class="author-badge">
-                            {{ if isAdminPost $value.UserID }}
-                              <div class="avatar-circle admin">A</div>
-                              <div class="author-handle admin">Admin</div>
-                            {{ else }}
-                              {{ $u := getAuthor $value.UserID }}
-                              <div class="avatar-circle">{{ firstLetter $u.Username }}</div>
-                              <div class="author-handle">@{{ $u.Username }}</div>
-                            {{ end }}
+                        <div class="author-col with-divider">
+                            <div class="author-badge">
+                                {{ if isAdminPost $value.UserID }}
+                                  <div class="avatar-circle admin">A</div>
+                                  <div class="author-handle admin">Admin</div>
+                                {{ else }}
+                                  {{ $u := getAuthor $value.UserID }}
+                                  <div class="avatar-circle">{{ firstLetter $u.Username }}</div>
+                                  <div class="author-handle">@{{ $u.Username }}</div>
+                                {{ end }}
+                            </div>
                         </div>
                         <div class="post-text-content">
                             <h2 class="post-title text-primary">{{ $value.Title }}</h2>
+                            <p class="post-meta">
+                                {{ getDate $value.CreatedAt }} - {{ getCategory $value.CategoryID }}
+                                <span class="ml-5">Yapılan Yorum Sayısı: {{ sumReplies $value.Comments }}</span>
+                            </p>
                         </div>
                     </div>
-                    <p class="post-meta">
-                        {{ getDate $value.CreatedAt }} - {{ getCategory $value.CategoryID }}
-                        <span class="ml-5">Yapılan Yorum Sayısı: {{ sumReplies $value.Comments }}</span>
-                    </p>
                 </a>
             </div>
 
@@ -53,75 +55,40 @@
 
 
 <style>
+    :root { --author-col: 120px; }
+    @media (max-width: 576px){ :root{ --author-col: 96px; } }
 
-    #writer {
-        position: fixed; /* Ekranın belirli bir yerine sabitle */
-        bottom: 1.5rem; /* Alttan 20 piksel boşluk */
-        left: 1.5rem; /* Sağdan 20 piksel boşluk */
-        z-index: 1000; /* Diğer elementlerin üzerinde olmasını sağla */
-        border: none;
-        background-color: #113357; /* Koyu arka plan */
-        color: white; /* Beyaz ok rengi */
-        cursor: pointer;
-        padding: 1rem; /* Buton içi boşluk */
-        border-radius: 45%; /* Yuvarlak şekil */
-        font-size: 1.5rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: background-color 0.3s, transform 0.3s;
-    }
+    #scrollTopBtn:hover { background-color:#333; transform:translateY(-2px); }
 
-    #scrollTopBtn:hover {
-        background-color: #333; /* Butonun üzerine gelince rengi koyulaştır */
-        transform: translateY(-2px); /* Butonun hafifçe yukarı çıkmasını sağla */
-    }
-
-    .post-link { text-decoration: none; }
+    .post-link { text-decoration:none; display:block; }
     .author-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-right:14px;min-width:64px}
     .avatar-circle{width:48px;height:48px;border-radius:50%;background:#0d3a66;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
     .avatar-circle.admin{background:#222}
-    .author-handle{margin-top:6px;color:#333;font-weight:600;font-size:.9rem}
+    .author-handle{margin-top:6px;color:#333;font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
     .author-handle.admin{color:#111;font-weight:800}
 
-    /* Yeni eklediğimiz sınıf için CSS stilleri */
-    .post-image-circle {
-        width: 5rem; /* Resmin genişliğini ayarlayın */
-        height: 5rem; /* Resmin yüksekliğini ayarlayın, genişlikle aynı olmalı */
-        border-radius: 50%; /* Resmi daire şekline getirir */
-        object-fit: cover; /* Resmin boyutuna göre sığacak şekilde keser, orantıyı korur */
-        margin-right: 15px; /* Resim ile yazı arasına boşluk bırakır */
-    }
+    /* Dikey ayırıcı ve hizalama (sabit genişlik + border-box => tüm satırlarda aynı x-konumu) */
+    .author-col{flex:0 0 var(--author-col); width:var(--author-col); box-sizing:border-box;}
+    .author-col.with-divider{border-right:1px solid #e5e7eb;padding-right:16px;margin-right:16px;display:flex;align-items:center}
+    .author-col .author-badge{margin-right:0;width:100%}
 
     /* Metinleri kapsayan div için */
-    .post-text-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* Metni dikeyde ortalar */
-    }
+    .post-text-content { display:flex; flex-direction:column; justify-content:center; }
 
-    /* Eğer d-flex sınıfı zaten mevcutsa, esnek hizalama için bu stilleri de ekleyebilirsiniz */
-    .d-flex {
-        display: flex;
-        align-items: center; /* Yan yana gelen elemanları dikeyde ortalar */
-    }
+    /* Başlık–tarih aralığını ve alt boşluğu sıkılaştır */
+    .post-title{ margin:0 0 4px; line-height:1.25; }
+    .post-meta{ margin:0 !important; color:#6b7280; font-size:.95rem; }
 
-#scrollTopBtn {
-    display: none; /* Varsayılan olarak gizli */
-    position: fixed; /* Ekranın belirli bir yerine sabitle */
-    bottom: 1.5rem; /* Alttan 20 piksel boşluk */
-    right: 1.5rem; /* Sağdan 20 piksel boşluk */
-    z-index: 1000; /* Diğer elementlerin üzerinde olmasını sağla */
-    border: none;
-    background-color: #111; /* Koyu arka plan */
-    color: white; /* Beyaz ok rengi */
-    cursor: pointer;
-    padding: 15px; /* Buton içi boşluk */
-    border-radius: 45%; /* Yuvarlak şekil */
-}
+    /* Satır hizası: çocukları tam yükseklikte tut (divider tam boy görünsün) ve alt boşluğu sıkılaştır */
+    .d-flex { display:flex; align-items:stretch; }
+    .post-preview .d-flex{ margin:0; padding:8px 0; }
 
-#scrollTopBtn:hover {
-    background-color: #333; /* Butonun üzerine gelince rengi koyulaştır */
-    transform: translateY(-2px); /* Butonun hafifçe yukarı çıkmasını sağla */
-}
+    /* Alt ayırıcı çizgisinin boşluğunu azalt ve sonuncuyu gizle */
+    .post-preview + hr{ margin:6px 0; opacity:1; border-color:#eaeaea; }
+    .post-preview:last-of-type + hr{ display:none; }
+
+#scrollTopBtn { display:none; position:fixed; bottom:1.5rem; right:1.5rem; z-index:1000; border:none; background-color:#111; color:#fff; cursor:pointer; padding:15px; border-radius:45%; }
+#scrollTopBtn:hover { background-color:#333; transform:translateY(-2px); }
 </style>
 
 <script>

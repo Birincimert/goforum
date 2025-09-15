@@ -29,7 +29,9 @@ func (ua Userauth) LoginRegisterPage(w http.ResponseWriter, r *http.Request, _ h
 	if user, ok := helpers.GetCurrentUser(r, ua.Store); ok {
 		data["CurrentUser"] = user
 	}
-	view.ExecuteTemplate(w, "index", data)
+	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
 func (ua Userauth) DoRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -53,8 +55,16 @@ func (ua Userauth) DoRegister(w http.ResponseWriter, r *http.Request, _ httprout
 	}
 	user.Add()
 
-	helpers.SetUser(w, r, ua.Store, user)
-	helpers.SetAlert(w, r, "Kayıt başarılı, hoş geldiniz.", ua.Store)
+	// Add value receiver olduğundan DoRegister içindeki user.ID güncellenmeyebilir.
+	// Otomatik giriş için, eklenen kullanıcıyı tekrar çekip (ID dolu) session’a yaz.
+	saved := adminmodels.User{}.Get("username = ?", username)
+	if saved.ID != 0 {
+		_ = helpers.SetUser(w, r, ua.Store, saved)
+	} else {
+		// Fallback: mevcut user objesi ile (ID 0 olabilir) yine de devam edelim
+		_ = helpers.SetUser(w, r, ua.Store, user)
+	}
+	_ = helpers.SetAlert(w, r, "Kayıt başarılı, hoş geldiniz.", ua.Store)
 	http.Redirect(w, r, returnURL, http.StatusSeeOther)
 }
 
@@ -67,17 +77,17 @@ func (ua Userauth) DoLogin(w http.ResponseWriter, r *http.Request, _ httprouter.
 	}
 	user := adminmodels.User{}.Get("username = ? AND password = ?", username, password)
 	if user.ID == 0 {
-		helpers.SetAlert(w, r, "Hesap bulunamadı, lütfen kayıt olun.", ua.Store)
+		_ = helpers.SetAlert(w, r, "Hesap bulunamadı, lütfen kayıt olun.", ua.Store)
 		http.Redirect(w, r, "/login?return_url="+returnURL, http.StatusSeeOther)
 		return
 	}
-	helpers.SetUser(w, r, ua.Store, user)
-	helpers.SetAlert(w, r, "Giriş başarılı.", ua.Store)
+	_ = helpers.SetUser(w, r, ua.Store, user)
+	_ = helpers.SetAlert(w, r, "Giriş başarılı.", ua.Store)
 	http.Redirect(w, r, returnURL, http.StatusSeeOther)
 }
 
 func (ua Userauth) Logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	helpers.RemoveUser(w, r, ua.Store)
-	helpers.SetAlert(w, r, "Çıkış yapıldı.", ua.Store)
+	_ = helpers.RemoveUser(w, r, ua.Store)
+	_ = helpers.SetAlert(w, r, "Çıkış yapıldı.", ua.Store)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

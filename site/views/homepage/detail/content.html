@@ -7,7 +7,7 @@
         {{ if .ParentCommentID }}
         <div class="d-flex align-items-center mb-2">
             <div class="reply-avatar" style="width: 32px; height: 32px; background: #111111; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                <span style="color: white; font-weight: bold; font-size: 0.9rem;">{{ slice .Name 0 1 }}</span>
+                <span style="color: white; font-weight: bold; font-size: 0.9rem;">{{ firstLetter .Name }}</span>
             </div>
             <div class="flex-grow-1">
                 <strong class="reply-author" style="font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #1e1919; display: block; font-weight: 600;">{{ .Name }}</strong>
@@ -16,7 +16,7 @@
         </div>
         {{ else }}
         <div class="comment-avatar" style="width: 40px; height: 40px; background: #111111; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-            <span style="color: white; font-weight: bold; font-size: 1.1rem;">{{ slice .Name 0 1 }}</span>
+            <span style="color: white; font-weight: bold; font-size: 1.1rem;">{{ firstLetter .Name }}</span>
         </div>
         <div class="flex-grow-1">
             <strong class="comment-author" style="font-family: 'Inter', sans-serif; font-size: 1rem; color: #1e1919; display: block; font-weight: 600;">{{ .Name }}</strong>
@@ -92,6 +92,25 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
+                <!-- Yazar + tarih rail bileşeni -->
+                <div class="author-rail mt-4 mb-2">
+                    <div class="rail-avatar">
+                        {{ if isAdminPost .Post.UserID }}
+                            <span>A</span>
+                        {{ else }}
+                            {{ $au := getAuthor .Post.UserID }}
+                            <span>{{ firstLetter $au.Username }}</span>
+                        {{ end }}
+                    </div>
+                    <div class="rail-username">
+                        {{ if isAdminPost .Post.UserID }}Admin{{ else }}{{ $au := getAuthor .Post.UserID }}@{{ $au.Username }}{{ end }}
+                    </div>
+                    <div class="rail-right">
+                        <div class="rail-line"></div>
+                        <div class="rail-date">{{ getDate .Post.CreatedAt }}</div>
+                    </div>
+                </div>
+
                 <div id="blog-content" class="post-content my-5" style="font-family: 'Lato', sans-serif; font-size: 1.15rem; line-height: 1.8;">
                     {{ safeHTML .Post.Content }}
                 </div>
@@ -141,6 +160,14 @@
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    /* Author rail bileşeni */
+    .author-rail{ display:grid; grid-template-columns: 72px 1fr; grid-template-rows: auto auto; column-gap:16px; align-items:center; }
+    .rail-avatar{ grid-column:1; grid-row:1; width:56px; height:56px; border-radius:50%; background:#111; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.15rem; justify-self:center; }
+    .rail-username{ grid-column:1; grid-row:2; font-weight:600; color:#1e1919; font-size:.95rem; justify-self:center; margin-top:6px; }
+    .rail-right{ grid-column:2; grid-row:1; display:flex; align-items:center; }
+    .rail-line{ flex:1; height:1px; background:#e5e7eb; }
+    .rail-date{ margin-left:12px; color:#6b7280; font-size:.95rem; white-space:nowrap; }
+
     /* Inline stillerden taşınan güvenli kurallar */
     .comment-item {
         background: #ffffff;

@@ -76,10 +76,12 @@ func (post Post) GetAll(where ...interface{}) []Post {
 		return nil
 	}
 	var posts []Post
-	db.Preload("Comments", "parent_comment_id IS NULL").
-		Preload("Comments.Replies").
-		Order("id DESC").
-		Find(&posts, where...)
+	// Kısmi preload yerine önce postları al, ardından her post için yorumları derin olarak doldur
+	db.Order("id DESC").Find(&posts, where...)
+	for i := range posts {
+		comments, _ := Comment{}.GetAllByPostID(posts[i].ID)
+		posts[i].Comments = comments
+	}
 	return posts
 }
 

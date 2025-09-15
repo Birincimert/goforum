@@ -18,4 +18,36 @@
   });
   </script>
 {{ end }}
+
+<!-- Page-scoped enhancers -->
+<script>
+(function(){
+  // Summernote’u sadece Yeni Yazı formu (#post-editor) varsa yükle
+  function loadScript(src, cb){ var s=document.createElement('script'); s.src=src; s.onload=cb; document.head.appendChild(s); }
+  function ensureCss(href){ if (![...document.styleSheets].some(ss=>ss.href && ss.href.indexOf(href)>=0)){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=href; document.head.appendChild(l);} }
+  if (document.getElementById('post-editor')) {
+    ensureCss('/admin/assets/summernote/summernote-bs4.min.css');
+    loadScript('/admin/assets/summernote/summernote-bs4.min.js', function(){
+      if (window.jQuery && jQuery.fn && jQuery.fn.summernote) {
+        jQuery(function(){
+          jQuery('#post-editor').summernote({
+            height: 320,
+            minHeight: 220,
+            placeholder: 'Yazı içeriğini buraya yazın…',
+            toolbar: [
+              ['style', ['style']],
+              ['font', ['bold','italic','underline','clear']],
+              ['fontname', ['fontname']],
+              ['color', ['color']],
+              ['para', ['ul','ol','paragraph']],
+              ['insert', ['link','picture','video']],
+              ['view', ['fullscreen','codeview','help']]
+            ]
+          });
+        });
+      }
+    });
+  }
+})();
+</script>
 {{ end }}

@@ -24,13 +24,12 @@ type Homepage struct {
 }
 
 func (homepage Homepage) Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	// Kategori sayıları
+	counts := models.Post{}.CountsByCategory()
+
 	view, err := template.New("index").Funcs(template.FuncMap{
-		"getCategory": func(categoryID int) string {
-			return models.Category{}.Get(categoryID).Title
-		},
-		"getDate": func(t time.Time) string {
-			return fmt.Sprintf("%02d.%02d.%d", t.Day(), int(t.Month()), t.Year())
-		},
+		"getCategory": func(categoryID int) string { return models.Category{}.Get(categoryID).Title },
+		"getDate":     func(t time.Time) string { return fmt.Sprintf("%02d.%02d.%d", t.Day(), int(t.Month()), t.Year()) },
 		"sumReplies": func(comments []models.Comment) int {
 			var total int
 			var walk func(items []models.Comment)
@@ -60,13 +59,27 @@ func (homepage Homepage) Index(w http.ResponseWriter, r *http.Request, _ httprou
 			r := []rune(s)
 			return strings.ToUpper(string(r[0]))
 		},
+		// Kategori yazı sayısı yardımcıları
+		"catCount": func(catID uint) int { return counts[int(catID)] },
+		"totalCount": func() int {
+			sum := 0
+			for _, v := range counts {
+				sum += v
+			}
+			return sum
+		},
 	}).ParseFiles(helpers.Include("homepage/list")...)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
 	data := make(map[string]interface{})
 	data["Posts"] = models.Post{}.GetAll()
+	// Kategorileri şablona gönder
+	data["Categories"] = models.Category{}.GetAll()
+	// Aktif kategori (tümü)
+	data["ActiveCategorySlug"] = ""
 	// include alert so SetAlert redirects show toast on homepage
 	data["Alert"] = helpers.GetAlert(w, r, homepage.Store)
 	if user, ok := helpers.GetCurrentUser(r, homepage.Store); ok {
@@ -325,4 +338,79 @@ func (homepage Homepage) DeleteOwnPost(w http.ResponseWriter, r *http.Request, p
 	post.Delete()
 	_ = helpers.SetAlert(w, r, "Yazınız ve yorumları silindi.", homepage.Store)
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)
+}
+
+// Kategoriye göre listeleme
+func (homepage Homepage) CategoryList(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	// Kategori sayıları
+	counts := models.Post{}.CountsByCategory()
+
+	view, err := template.New("index").Funcs(template.FuncMap{
+		"getCategory": func(categoryID int) string { return models.Category{}.Get(categoryID).Title },
+		"getDate":     func(t time.Time) string { return fmt.Sprintf("%02d.%02d.%d", t.Day(), int(t.Month()), t.Year()) },
+		"sumReplies": func(comments []models.Comment) int {
+			var total int
+			var walk func(items []models.Comment)
+			walk = func(items []models.Comment) {
+				for _, c := range items {
+					total++
+					if len(c.Replies) > 0 {
+						walk(c.Replies)
+					}
+				}
+			}
+			walk(comments)
+			return total
+		},
+		"getAuthor": func(userID uint) adminmodels.User {
+			if userID == 0 {
+				return adminmodels.User{}
+			}
+			return adminmodels.User{}.Get("id = ?", userID)
+		},
+		"isAdminPost": func(userID uint) bool { return userID == 0 },
+		"firstLetter": func(s string) string {
+			if s == "" {
+				return "?"
+			}
+			r := []rune(s)
+			return strings.ToUpper(string(r[0]))
+		},
+		"catCount": func(catID uint) int { return counts[int(catID)] },
+		"totalCount": func() int {
+			sum := 0
+			for _, v := range counts {
+				sum += v
+			}
+			return sum
+		},
+	}).ParseFiles(helpers.Include("homepage/list")...)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	slugStr := params.ByName("slug")
+	cat := models.Category{}.Get("slug = ?", slugStr)
+	if cat.ID == 0 {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	data := map[string]interface{}{}
+	data["Posts"] = models.Post{}.GetAll("category_id = ?", cat.ID)
+	data["Categories"] = models.Category{}.GetAll()
+	data["ActiveCategorySlug"] = slugStr
+	data["Alert"] = helpers.GetAlert(w, r, homepage.Store)
+	if user, ok := helpers.GetCurrentUser(r, homepage.Store); ok {
+		data["CurrentUser"] = user
+	}
+	data["ReturnURL"] = r.URL.RequestURI()
+
+	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

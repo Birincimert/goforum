@@ -16,6 +16,21 @@
 <!-- Main Content-->
 <div class="container">
     <div class="row">
+        <div class="col-lg-2 col-md-12 mb-4">
+            <nav class="cat-nav" style="width: 12rem">
+                <div class="cat-title">Kategoriler</div>
+                <ul class="cat-list">
+                    <li class="cat-item {{ if .ActiveCategorySlug }}{{ else }}active{{ end }}">
+                        <a href="/">Tümü ({{ totalCount }})</a>
+                    </li>
+                    {{ range $i, $c := .Categories }}
+                    <li class="cat-item {{ if eq $.ActiveCategorySlug $c.Slug }}active{{ end }}">
+                        <a href="/kategori/{{ $c.Slug }}">{{ $c.Title }} ({{ catCount $c.ID }})</a>
+                    </li>
+                    {{ end }}
+                </ul>
+            </nav>
+        </div>
         <div class="col-lg-10 col-md-12 mx-auto">
             {{ range $index,$value := .Posts }}
             <div class="post-preview">
@@ -87,8 +102,14 @@
     .post-preview + hr{ margin:6px 0; opacity:1; border-color:#eaeaea; }
     .post-preview:last-of-type + hr{ display:none; }
 
-#scrollTopBtn { display:none; position:fixed; bottom:1.5rem; right:1.5rem; z-index:1000; border:none; background-color:#111; color:#fff; cursor:pointer; padding:15px; border-radius:45%; }
-#scrollTopBtn:hover { background-color:#333; transform:translateY(-2px); }
+    /* Minimalist kategori menüsü: biraz daha sola al ve postlardan ayır */
+    .cat-nav{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:10px;margin-left:-10px;margin-right:12px}
+    .cat-title{font-weight:700;color:#0d3a66;margin:2px 6px 8px}
+    .cat-list{list-style:none;margin:0;padding:0}
+    .cat-item{margin:0}
+    .cat-item a{display:block;padding:6px 10px;border-left:3px solid transparent;color:#222;text-decoration:none;border-radius:8px}
+    .cat-item a:hover{background:#f7fafc}
+    .cat-item.active a{background:#f3f6fb;border-left-color:#0d3a66;font-weight:700}
 </style>
 
 <script>

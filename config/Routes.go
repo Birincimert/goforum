@@ -16,6 +16,9 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.GET("/", site.Homepage{Store: store}.Index)
 	r.GET("/post/:slug", site.Homepage{Store: store}.Detail)
 	r.GET("/yazilar/:slug", site.Homepage{Store: store}.Detail)
+	// Kategori listeleme (çakışmasın diye ayrı kök)
+	r.GET("/kategori/:slug", site.Homepage{Store: store}.CategoryList)
+
 	r.GET("/about", site.Homepage{Store: store}.About)
 	r.GET("/contact", site.Homepage{Store: store}.Contact)
 	r.POST("/contact/submit", site.HandleContactForm)

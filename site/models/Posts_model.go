@@ -85,6 +85,26 @@ func (post Post) GetAll(where ...interface{}) []Post {
 	return posts
 }
 
+// CountsByCategory: kategori_id'ye göre toplam post sayıları
+func (post Post) CountsByCategory() map[int]int {
+	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return map[int]int{}
+	}
+	type Row struct {
+		CategoryID int
+		Cnt        int64
+	}
+	var rows []Row
+	db.Model(&Post{}).Select("category_id as category_id, COUNT(*) as cnt").Group("category_id").Scan(&rows)
+	counts := make(map[int]int, len(rows))
+	for _, r := range rows {
+		counts[r.CategoryID] = int(r.Cnt)
+	}
+	return counts
+}
+
 func (post Post) Update(column string, value interface{}) {
 	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
 	if err != nil {

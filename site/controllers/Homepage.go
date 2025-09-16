@@ -75,7 +75,8 @@ func (homepage Homepage) Index(w http.ResponseWriter, r *http.Request, _ httprou
 	}
 
 	data := make(map[string]interface{})
-	data["Posts"] = models.Post{}.GetAll()
+	// SADECE onaylı veya admin yazıları göster
+	data["Posts"] = models.Post{}.GetAll("is_approved = ? OR user_id = 0", true)
 	// Kategorileri şablona gönder
 	data["Categories"] = models.Category{}.GetAll()
 	// Aktif kategori (tümü)
@@ -146,6 +147,11 @@ func (homepage Homepage) Detail(w http.ResponseWriter, r *http.Request, params h
 				post = p // render with ID fallback if slug missing
 			}
 		}
+	}
+	// Onaylanmamış kullanıcı gönderilerini herkese açık göstermeyelim
+	if post.ID != 0 && post.UserID != 0 && !post.IsApproved {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
 	}
 	data["Post"] = post
 	if user, ok := helpers.GetCurrentUser(r, homepage.Store); ok {
@@ -399,7 +405,8 @@ func (homepage Homepage) CategoryList(w http.ResponseWriter, r *http.Request, pa
 	}
 
 	data := map[string]interface{}{}
-	data["Posts"] = models.Post{}.GetAll("category_id = ?", cat.ID)
+	// SADECE onaylı veya admin yazıları göster (kategoriye göre)
+	data["Posts"] = models.Post{}.GetAll("(is_approved = ? OR user_id = 0) AND category_id = ?", true, cat.ID)
 	data["Categories"] = models.Category{}.GetAll()
 	data["ActiveCategorySlug"] = slugStr
 	data["Alert"] = helpers.GetAlert(w, r, homepage.Store)
@@ -413,4 +420,87 @@ func (homepage Homepage) CategoryList(w http.ResponseWriter, r *http.Request, pa
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// Kullanıcı kendi postunu düzenleyebilsin (form)
+func (homepage Homepage) EditOwnPostForm(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	user, ok := helpers.GetCurrentUser(r, homepage.Store)
+	if !ok {
+		http.Redirect(w, r, "/login?return_url=/profile", http.StatusSeeOther)
+		return
+	}
+	idStr := params.ByName("id")
+	pid, _ := strconv.Atoi(idStr)
+	post := models.Post{}.Get(pid)
+	if post.ID == 0 || post.UserID != user.ID {
+		_ = helpers.SetAlert(w, r, "Bu içeriği düzenleme yetkiniz yok.", homepage.Store)
+		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		return
+	}
+	view, err := template.New("editpost").Funcs(template.FuncMap{
+		"safeHTML": func(html string) template.HTML { return template.HTML(html) },
+	}).ParseFiles(helpers.Include("homepage/editpost")...)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	data := map[string]interface{}{
+		"CurrentUser": user,
+		"Post":        post,
+		"Categories":  models.Category{}.GetAll(),
+		"Alert":       helpers.GetAlert(w, r, homepage.Store),
+	}
+	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+		log.Println(err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// Kullanıcı kendi postunu düzenleyebilsin (submit)
+func (homepage Homepage) EditOwnPostSubmit(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	user, ok := helpers.GetCurrentUser(r, homepage.Store)
+	if !ok {
+		http.Redirect(w, r, "/login?return_url=/profile", http.StatusSeeOther)
+		return
+	}
+	idStr := params.ByName("id")
+	pid, _ := strconv.Atoi(idStr)
+	post := models.Post{}.Get(pid)
+	if post.ID == 0 || post.UserID != user.ID {
+		_ = helpers.SetAlert(w, r, "Bu içeriği düzenleme yetkiniz yok.", homepage.Store)
+		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		return
+	}
+
+	title := r.FormValue("blog-title")
+	description := r.FormValue("blog-desc")
+	categoryID, _ := strconv.Atoi(r.FormValue("blog-category"))
+	content := r.FormValue("blog-content")
+
+	// Opsiyonel kapak güncelleme
+	if err := r.ParseMultipartForm(10 << 20); err == nil {
+		if file, header, err := r.FormFile("blog-picture"); err == nil && header != nil && header.Filename != "" {
+			if _, statErr := os.Stat("uploads"); os.IsNotExist(statErr) {
+				_ = os.MkdirAll("uploads", 0755)
+			}
+			f, openErr := os.OpenFile("uploads/"+header.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+			if openErr == nil {
+				_, _ = io.Copy(f, file)
+				post.Picture_url = "uploads/" + header.Filename
+			}
+		}
+	}
+
+	// Güncelle (slug ve isApproved değişmeden kalsın)
+	post.Updates(models.Post{
+		Title:       title,
+		Description: description,
+		CategoryID:  categoryID,
+		Content:     content,
+		Picture_url: post.Picture_url,
+	})
+
+	_ = helpers.SetAlert(w, r, "Yazınız güncellendi.", homepage.Store)
+	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }

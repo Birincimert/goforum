@@ -53,11 +53,13 @@
           {{ range .MyPosts }}
             <div class="list-item">
               <div class="list-left">
+                {{ if not .IsApproved }}<span class="badge-pending" title="Onay bekliyor"><i class="fas fa-clock"></i></span>{{ end }}
                 <a class="list-title" href="/post/{{ .Slug }}">{{ .Title }}</a>
                 <div class="list-sub">{{ .Description }}</div>
               </div>
               <div class="list-right actions">
                 <span class="list-date">{{ .CreatedAt.Format "02.01.2006 15:04" }}</span>
+                <a class="btn-edit" href="/profile/post/edit/{{ .ID }}" title="Düzenle"><i class="fas fa-pen"></i></a>
                 <a class="btn-del" href="/profile/post/delete/{{ .ID }}" onclick="return confirm('Bu yazıyı ve tüm yorumlarını silmek istediğinize emin misiniz?');" title="Sil"><i class="fas fa-trash"></i></a>
               </div>
             </div>
@@ -125,8 +127,11 @@
 .actions{display:flex;align-items:center;gap:10px}
 .btn-del{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid #f1c9c9;background:#fff;color:#b11;}
 .btn-del:hover{background:#ffecec;border-color:#f3b7b7}
+.btn-edit{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid #cfe2f3;background:#fff;color:#0d3a66}
+.btn-edit:hover{background:#eef6ff;border-color:#b8d5ef}
 .list-date{color:#678;white-space:nowrap;font-size:.9rem}
 .empty{background:#fff;border:1px dashed #bdd3e6;color:#456;border-radius:12px;padding:16px;text-align:center}
+.badge-pending{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#ffefc2;color:#8a6d00;border:1px solid #f6d98b;margin-right:8px}
 @media(max-width:768px){.grid-2{grid-template-columns:1fr}.profile-actions-top{flex-direction:column}.list-item{flex-direction:column;align-items:flex-start}.actions{align-self:flex-end}.list-right{display:flex;gap:8px}}
 </style>
 <script>

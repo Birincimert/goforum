@@ -100,6 +100,7 @@ func (dashboard Dashboard) Add(w http.ResponseWriter, r *http.Request, params ht
 		CategoryID:  categoryID,
 		Content:     content,
 		Picture_url: pictureURL,
+		IsApproved:  true,
 	}.Add()
 	helpers.SetAlert(w, r, "Kayıt başarıyla eklendi", dashboard.Store)
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)

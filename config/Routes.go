@@ -24,10 +24,13 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.POST("/contact/submit", site.HandleContactForm)
 	// Profile
 	r.GET("/profile", site.Homepage{Store: store}.Profile)
-	// User post create (geri getirildi)
+	// User post create
 	r.GET("/profile/new-post", site.Homepage{Store: store}.NewPostForm)
 	r.POST("/profile/new-post", site.Homepage{Store: store}.NewPostSubmit)
-	// User post delete (opsiyonel geri getirildi)
+	// User post edit
+	r.GET("/profile/post/edit/:id", site.Homepage{Store: store}.EditOwnPostForm)
+	r.POST("/profile/post/edit/:id", site.Homepage{Store: store}.EditOwnPostSubmit)
+	// User post delete
 	r.GET("/profile/post/delete/:id", site.Homepage{Store: store}.DeleteOwnPost)
 
 	// Site Auth
@@ -44,6 +47,11 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.GET("/admin/delete/:id", admin.Dashboard{Store: store}.Delete)
 	r.GET("/admin/edit/:id", admin.Dashboard{Store: store}.Edit)
 	r.POST("/admin/update/:id", admin.Dashboard{Store: store}.Update)
+
+	// Admin Approvals (Onay Bekleyenler)
+	r.GET("/admin/pending", admin.Approvals{Store: store}.Index)
+	r.GET("/admin/pending/view/:id", admin.Approvals{Store: store}.Detail)
+	r.GET("/admin/pending/approve/:id", admin.Approvals{Store: store}.Approve)
 
 	// Admin Members
 	r.GET("/admin/members", admin.Members{Store: store}.Index)

@@ -1,0 +1,37 @@
+{{ define "content" }}
+<div>
+    <h1>
+        Onay Bekleyen Gönderiler
+    </h1>
+    <hr>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Kapak</th>
+                <th>Başlık</th>
+                <th>Kategori</th>
+                <th>Eklenme</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range $i, $p := .Posts }}
+            <tr>
+                <td>{{ $p.ID }}</td>
+                <td><img src="/{{ $p.Picture_url }}" alt="" width="80"></td>
+                <td>{{ $p.Title }}</td>
+                <td>{{ getCategory $p.CategoryID }}</td>
+                <td>{{ $p.CreatedAt }}</td>
+                <td>
+                    <a href="/admin/pending/view/{{ $p.ID }}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i></a>
+                    <a href="/admin/pending/approve/{{ $p.ID }}" class="btn btn-sm btn-outline-success"><i class="fa fa-check"></i></a>
+                    <a href="/admin/delete/{{ $p.ID }}" class="btn btn-sm btn-outline-danger"><i class="fa fa-trash"></i></a>
+                </td>
+            </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+{{ end }}

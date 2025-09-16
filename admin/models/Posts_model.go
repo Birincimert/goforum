@@ -12,6 +12,7 @@ type Post struct {
 	Title, Slug, Description, Content, Picture_url string
 	CategoryID                                     int
 	UserID                                         uint
+	IsApproved                                     bool
 }
 
 func (post Post) Migrate() {

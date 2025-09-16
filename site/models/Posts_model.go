@@ -12,6 +12,7 @@ type Post struct {
 	Title, Slug, Description, Content, Picture_url string
 	CategoryID                                     int
 	UserID                                         uint
+	IsApproved                                     bool
 	Comments                                       []Comment
 }
 
@@ -85,7 +86,7 @@ func (post Post) GetAll(where ...interface{}) []Post {
 	return posts
 }
 
-// CountsByCategory: kategori_id'ye göre toplam post sayıları
+// CountsByCategory: onaylı veya admin yazıları için kategori bazında toplamlar
 func (post Post) CountsByCategory() map[int]int {
 	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
 	if err != nil {
@@ -97,7 +98,10 @@ func (post Post) CountsByCategory() map[int]int {
 		Cnt        int64
 	}
 	var rows []Row
-	db.Model(&Post{}).Select("category_id as category_id, COUNT(*) as cnt").Group("category_id").Scan(&rows)
+	db.Model(&Post{}).
+		Select("category_id as category_id, COUNT(*) as cnt").
+		Where("is_approved = ? OR user_id = 0", true).
+		Group("category_id").Scan(&rows)
 	counts := make(map[int]int, len(rows))
 	for _, r := range rows {
 		counts[r.CategoryID] = int(r.Cnt)

@@ -210,7 +210,18 @@ func (homepage Homepage) Profile(w http.ResponseWriter, r *http.Request, _ httpr
 		http.Redirect(w, r, "/login?return_url=/profile", http.StatusSeeOther)
 		return
 	}
-	view, err := template.ParseFiles(helpers.Include("homepage/profile")...)
+	// Şablon fonksiyonları: yorum URL’si
+	funcMap := template.FuncMap{
+		"commentURL": func(postID uint, commentID uint) string {
+			p := models.Post{}.Get(postID)
+			seg := p.Slug
+			if seg == "" {
+				seg = fmt.Sprintf("%d", p.ID)
+			}
+			return "/post/" + seg + "#comment-" + fmt.Sprintf("%d", commentID)
+		},
+	}
+	view, err := template.New("index").Funcs(funcMap).ParseFiles(helpers.Include("homepage/profile")...)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -492,7 +503,7 @@ func (homepage Homepage) EditOwnPostSubmit(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// Güncelle (slug ve isApproved değişmeden kalsın)
+	// İçerik alanlarını güncelle
 	post.Updates(models.Post{
 		Title:       title,
 		Description: description,
@@ -500,7 +511,9 @@ func (homepage Homepage) EditOwnPostSubmit(w http.ResponseWriter, r *http.Reques
 		Content:     content,
 		Picture_url: post.Picture_url,
 	})
+	// Yeniden onaya düşür (false zero-value olduğu için tekil Update kullan)
+	post.Update("is_approved", false)
 
-	_ = helpers.SetAlert(w, r, "Yazınız güncellendi.", homepage.Store)
+	_ = helpers.SetAlert(w, r, "Yazınız güncellendi ve tekrar onaya gönderildi.", homepage.Store)
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }

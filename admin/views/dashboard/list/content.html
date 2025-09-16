@@ -26,7 +26,7 @@
             <td><img width="80px" src="{{ $value.Picture_url }}" alt=""></td>
             <td>{{ $value.Title }}</td>
             <td>{{ getCategory $value.CategoryID }}</td>
-            <td>{{ $value.CreatedAt }}</td>
+            <td>{{ $value.CreatedAt.Format "02.01.2006 15:04" }}</td>
             <td>
                 <a href="/admin/edit/{{ $value.ID }}" class="btn btn-outline-warning"><i class="fa fa-pen"></i></a>
                 <a href="/admin/delete/{{ $value.ID }}" class="btn btn-outline-danger"><i class="fa fa-trash"></i></a>

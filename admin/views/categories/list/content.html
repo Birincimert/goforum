@@ -30,7 +30,7 @@
             <th scope="row"> {{ $value.ID }}</th>
             <td>{{ $value.Title }}</td>
             <td>{{ $value.Slug }}</td>
-            <td>{{ $value.CreatedAt }}</td>
+            <td>{{ $value.CreatedAt.Format "02.01.2006 15:04" }}</td>
             <td>
                 <a href="/admin/kategoriler/delete/{{ $value.ID }}" class="btn btn-outline-danger"><i class="fa fa-trash"></i></a>
             </td>

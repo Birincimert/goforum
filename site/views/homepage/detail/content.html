@@ -53,7 +53,7 @@
                 <input type="hidden" name="post-id" value="{{ .PostID }}">
                 <input type="hidden" name="parent-comment-id" value="{{ .ID }}">
                 <div class="form-group mb-2">
-                    <textarea class="form-control" name="comment-content" rows="3" placeholder="Yanıtınız" required style="resize: none; border-radius: 8px;"></textarea>
+                    <textarea class="form-control" name="comment-content" rows="3" placeholder="Yanıtınız" aria-label="Yanıtınız" required style="resize: none; border-radius: 8px;"></textarea>
                 </div>
                 <button type="submit" class="btn btn-dark" style="border-radius: 22px; padding: 4px 16px;">
                     Gönder
@@ -74,8 +74,9 @@
 
 {{ define "content" }}
 
-<header class="masthead" style="background-image: url('/{{ .Post.Picture_url }}'); background-size: cover; background-position: center; position: relative; overflow: hidden; height: 500px;">
+<header class="masthead" style="background-image: url(/{{ .Post.Picture_url }}); background-size: cover; background-position: center; position: relative; overflow: hidden; height: 500px;">
     <div class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 1;"></div>
+    <!-- Kaydet butonu (sağ üst) -->
     <div class="container d-flex align-items-center justify-content-center" style="position: relative; z-index: 2; height: 100%;">
         <div class="row w-100">
             <div class="col-lg-10 col-md-12 mx-auto text-center">
@@ -111,8 +112,13 @@
                     </div>
                 </div>
 
-                <div id="blog-content" class="post-content my-5" style="font-family: 'Lato', sans-serif; font-size: 1.15rem; line-height: 1.8;">
-                    {{ safeHTML .Post.Content }}
+                <div class="post-content-holder">
+                    <button id="bookmarkBtn" class="bookmark-btn content-pos" data-post-id="{{ .Post.ID }}" title="Kaydet">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                    <div id="blog-content" class="post-content my-5" style="font-family: 'Lato', sans-serif; font-size: 1.15rem; line-height: 1.8;">
+                        {{ safeHTML .Post.Content }}
+                    </div>
                 </div>
 
                 <div class="comments-section mt-5 pt-4">
@@ -128,7 +134,7 @@
                             <input type="hidden" name="post-id" value="{{ .Post.ID }}">
                             <div class="form-group mb-4">
                                 <textarea class="form-control" id="comment-content" name="comment-content"
-                                          rows="4" placeholder="Düşüncelerinizi paylaşın..." required
+                                          rows="4" placeholder="Düşüncelerinizi paylaşın..." aria-label="Yorum içeriği" required
                                           style="border: 1px solid #e5e7eb; padding: 0.9rem; resize: vertical; border-radius: 8px;"></textarea>
                             </div>
                             <button type="submit" class="btn btn-dark px-4 py-2" style="border-radius: 28px; font-weight: 500; background-color: #111111; border-color: #111111;">
@@ -218,7 +224,7 @@
     .reply-item .action-buttons .reply-btn { padding: 2px 8px; border-radius: 14px; font-size: 0.75rem; }
     .action-buttons .toggle-replies { padding: 4px 12px; border-radius: 18px; font-size: 0.8rem; }
 
-    
+
     .comment-item:hover, .comment-form-container:hover {
         box-shadow: 0 4px 20px rgba(0,0,0,0.12);
         transform: translateY(-1px);
@@ -315,15 +321,24 @@
     transform: translateY(-2px); /* Butonun hafifçe yukarı çıkmasını sağla */
 }
 
-/* Hedef yorumu kısa süre vurgula */
-.comment-highlight {
-    animation: highlightPulse 2s ease-out 1;
-}
-@keyframes highlightPulse {
-    0% { box-shadow: 0 0 0 0 rgba(17,17,17,0.0); background-color: inherit; }
-    20% { box-shadow: 0 0 0 4px rgba(17,17,17,0.12); background-color: #fffef0; }
-    100% { box-shadow: 0 0 0 0 rgba(17,17,17,0.0); background-color: inherit; }
-}
+/* Kaydet butonu stili */
+.bookmark-btn { position:absolute; z-index:3; width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.6); background: rgba(17,17,17,.35); color:#fff; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(2px); transition: all .2s ease; }
+.bookmark-btn:hover { transform: translateY(-2px); background: rgba(17,17,17,.55); }
+.bookmark-btn.saved { background:#111111; border-color:#111111; }
+.bookmark-btn.saved i { color: #f4d03f; }
+    /* İçerik alanı için konumlandırma */
+    .post-content-holder{ position: relative; }
+    .bookmark-btn.content-pos{ top:-12px; right:-12px; }
+
+    /* Hedef yorumu kısa süre vurgula */
+    .comment-highlight {
+        animation: highlightPulse 2s ease-out 1;
+    }
+    @keyframes highlightPulse {
+        0% { box-shadow: 0 0 0 0 rgba(17,17,17,0.0); background-color: inherit; }
+        20% { box-shadow: 0 0 0 4px rgba(17,17,17,0.12); background-color: #fffef0; }
+        100% { box-shadow: 0 0 0 0 rgba(17,17,17,0.0); background-color: inherit; }
+    }
 
 </style>
 
@@ -437,6 +452,45 @@
         });
     }
 
+    // Kaydetme (bookmark) durumu yükle ve UI’ı güncelle
+    async function loadSavedPostState() {
+        const btn = document.getElementById('bookmarkBtn');
+        if (!btn) return;
+        const postId = btn.getAttribute('data-post-id');
+        if (!IS_AUTH) { updateBookmarkUI(false); return; }
+        try {
+            const res = await fetch(`/save/status/${postId}`);
+            if (res.ok) {
+                const json = await res.json();
+                updateBookmarkUI(!!json.saved);
+            }
+        } catch (_) {}
+    }
+    function updateBookmarkUI(isSaved){
+        const btn = document.getElementById('bookmarkBtn');
+        if (!btn) return;
+        const icon = btn.querySelector('i');
+        if (isSaved) {
+            btn.classList.add('saved');
+            if (icon) icon.setAttribute('class','fas fa-bookmark');
+            btn.setAttribute('title','Kaydedildi – tıklayınca kaldırılır');
+        } else {
+            btn.classList.remove('saved');
+            if (icon) icon.setAttribute('class','far fa-bookmark');
+            btn.setAttribute('title','Kaydet');
+        }
+    }
+    function handleBookmarkSave(){
+        const btn = document.getElementById('bookmarkBtn');
+        if (!btn) return;
+        const postId = btn.getAttribute('data-post-id');
+        if (!IS_AUTH) { redirectToLogin(); return; }
+        fetch(`/post/save/${postId}`, { method:'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(j => { if (typeof j.saved === 'boolean') updateBookmarkUI(j.saved); })
+            .catch(()=>{});
+    }
+
     // Hash ile gelindiyse hedef yorumu görünür yap ve vurgula
     function focusCommentFromHash() {
         const hash = window.location.hash || '';
@@ -468,7 +522,6 @@
     // Sayfa yüklendiğinde çalışacak ana fonksiyon
     function initializePage() {
         updateCommentCount();
-
         // Reply form toggle
         document.querySelectorAll('.reply-btn').forEach(button => {
             button.addEventListener('click', function(e) {
@@ -515,10 +568,12 @@
         // Beğeni butonlarını başlat
         const likeButtons = document.querySelectorAll('.like-btn');
         likeButtons.forEach(button => button.addEventListener('click', handleLikeClick));
-
+        // Bookmark
+        const bm = document.getElementById('bookmarkBtn');
+        if (bm) bm.addEventListener('click', handleBookmarkSave);
+        setTimeout(() => { loadSavedPostState(); }, 80);
         // localStorage'dan beğeni durumlarını yükle
         setTimeout(() => { loadLikeStates(); }, 100);
-
         // Hash ile hedef yorumu aç ve kaydır
         setTimeout(() => { focusCommentFromHash(); }, 120);
     }

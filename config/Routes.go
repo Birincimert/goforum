@@ -39,6 +39,18 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.POST("/site/register", site.Userauth{Store: store}.DoRegister)
 	r.GET("/site/logout", site.Userauth{Store: store}.Logout)
 
+	//COMMENT
+	comments := site.SiteComments{Store: store}
+	r.POST("/comment/add", comments.CommentAdd)
+	r.POST("/comment/upvote/:id", comments.CommentUpvote)
+	r.GET("/comment/likes/:id", comments.CommentLikeCount)
+	r.GET("/comment/liked/:id", comments.CommentIsLiked)
+
+	// SAVE (bookmark)
+	save := site.SaveController{Store: store}
+	r.POST("/post/save/:id", save.ToggleSave)
+	r.GET("/save/status/:id", save.IsSaved)
+
 	//ADMIN
 	r.GET("/admin", admin.Dashboard{Store: store}.Index)
 	//Blog Posts
@@ -74,13 +86,6 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.GET("/admin/about", admin.About{Store: store}.Index)
 	// Hakkında sayfasındaki formu kaydetmek için POST metodu
 	r.POST("/admin/about/save", admin.About{Store: store}.Save)
-
-	//COMMENT
-	comments := site.SiteComments{Store: store}
-	r.POST("/comment/add", comments.CommentAdd)
-	r.POST("/comment/upvote/:id", comments.CommentUpvote)
-	r.GET("/comment/likes/:id", comments.CommentLikeCount)
-	r.GET("/comment/liked/:id", comments.CommentIsLiked)
 
 	// Admin Comment Management Routes
 	r.GET("/admin/comments", admin.Comments{Store: store}.Index)

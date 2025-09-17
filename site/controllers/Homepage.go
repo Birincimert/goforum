@@ -4,7 +4,7 @@ import (
 	"fmt"
 	adminmodels "goforum/admin/models"
 	"goforum/site/helpers"
-	"goforum/site/models"
+	sitemodels "goforum/site/models"
 	"html/template"
 	"io"
 	"log"
@@ -25,15 +25,15 @@ type Homepage struct {
 
 func (homepage Homepage) Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// Kategori sayıları
-	counts := models.Post{}.CountsByCategory()
+	counts := sitemodels.Post{}.CountsByCategory()
 
 	view, err := template.New("index").Funcs(template.FuncMap{
-		"getCategory": func(categoryID int) string { return models.Category{}.Get(categoryID).Title },
+		"getCategory": func(categoryID int) string { return sitemodels.Category{}.Get(categoryID).Title },
 		"getDate":     func(t time.Time) string { return fmt.Sprintf("%02d.%02d.%d", t.Day(), int(t.Month()), t.Year()) },
-		"sumReplies": func(comments []models.Comment) int {
+		"sumReplies": func(comments []sitemodels.Comment) int {
 			var total int
-			var walk func(items []models.Comment)
-			walk = func(items []models.Comment) {
+			var walk func(items []sitemodels.Comment)
+			walk = func(items []sitemodels.Comment) {
 				for _, c := range items {
 					total++
 					if len(c.Replies) > 0 {
@@ -76,15 +76,24 @@ func (homepage Homepage) Index(w http.ResponseWriter, r *http.Request, _ httprou
 
 	data := make(map[string]interface{})
 	// SADECE onaylı veya admin yazıları göster
-	data["Posts"] = models.Post{}.GetAll("is_approved = ? OR user_id = 0", true)
+	data["Posts"] = sitemodels.Post{}.GetAll("is_approved = ? OR user_id = 0", true)
 	// Kategorileri şablona gönder
-	data["Categories"] = models.Category{}.GetAll()
+	data["Categories"] = sitemodels.Category{}.GetAll()
 	// Aktif kategori (tümü)
 	data["ActiveCategorySlug"] = ""
 	// include alert so SetAlert redirects show toast on homepage
 	data["Alert"] = helpers.GetAlert(w, r, homepage.Store)
+	// SavedMap
 	if user, ok := helpers.GetCurrentUser(r, homepage.Store); ok {
 		data["CurrentUser"] = user
+		savedPosts, _ := sitemodels.GetSavedPostsByUser(user.ID)
+		sm := make(map[uint]bool, len(savedPosts))
+		for _, sp := range savedPosts {
+			sm[sp.ID] = true
+		}
+		data["SavedMap"] = sm
+	} else {
+		data["SavedMap"] = map[uint]bool{}
 	}
 	data["ReturnURL"] = r.URL.RequestURI()
 	if err := view.ExecuteTemplate(w, "index", data); err != nil {
@@ -98,10 +107,10 @@ func (homepage Homepage) Detail(w http.ResponseWriter, r *http.Request, params h
 		"safeHTML": func(html string) template.HTML {
 			return template.HTML(html)
 		},
-		"sumReplies": func(comments []models.Comment) int {
+		"sumReplies": func(comments []sitemodels.Comment) int {
 			var total int
-			var walk func(items []models.Comment)
-			walk = func(items []models.Comment) {
+			var walk func(items []sitemodels.Comment)
+			walk = func(items []sitemodels.Comment) {
 				for _, c := range items {
 					total++
 					if len(c.Replies) > 0 {
@@ -139,12 +148,14 @@ func (homepage Homepage) Detail(w http.ResponseWriter, r *http.Request, params h
 	}
 	data := make(map[string]interface{})
 	slugStr := params.ByName("slug")
-	post := models.Post{}.GetBySlug(slugStr)
+	var post sitemodels.Post
+	post = sitemodels.Post{}.GetBySlug(slugStr)
 	if post.ID == 0 {
-		if id, errNum := strconv.ParseUint(slugStr, 10, 64); errNum == nil {
-			p := models.Post{}.Get(id)
-			if p.ID != 0 {
-				post = p // render with ID fallback if slug missing
+		if id64, err2 := strconv.ParseUint(slugStr, 10, 64); err2 == nil {
+			pid := uint(id64)
+			p2 := sitemodels.Post{}.Get(pid)
+			if p2.ID != 0 {
+				post = p2 // render with ID fallback if slug missing
 			}
 		}
 	}
@@ -172,7 +183,7 @@ func (homepage Homepage) Detail(w http.ResponseWriter, r *http.Request, params h
 
 func (homepage Homepage) About(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// 1. Veritabanından veriyi çek
-	about := models.About{}.Get()
+	about := sitemodels.About{}.Get()
 
 	// 2. safeHTML fonksiyonunu şablon motoruna ekle
 	funcMap := template.FuncMap{
@@ -213,7 +224,7 @@ func (homepage Homepage) Profile(w http.ResponseWriter, r *http.Request, _ httpr
 	// Şablon fonksiyonları: yorum URL’si
 	funcMap := template.FuncMap{
 		"commentURL": func(postID uint, commentID uint) string {
-			p := models.Post{}.Get(postID)
+			p := sitemodels.Post{}.Get(postID)
 			seg := p.Slug
 			if seg == "" {
 				seg = fmt.Sprintf("%d", p.ID)
@@ -228,17 +239,20 @@ func (homepage Homepage) Profile(w http.ResponseWriter, r *http.Request, _ httpr
 		return
 	}
 	// Kullanıcının yazıları
-	myPosts := models.Post{}.GetAll("user_id = ?", user.ID)
+	myPosts := sitemodels.Post{}.GetAll("user_id = ?", user.ID)
 	// Kullanıcının yorumları
-	myComments, _ := models.Comment{}.GetByUserID(user.ID)
+	myComments, _ := sitemodels.Comment{}.GetByUserID(user.ID)
 	// Beğendiği yorumlar
-	likedComments, _ := models.GetLikedCommentsByUser(user.ID)
+	likedComments, _ := sitemodels.GetLikedCommentsByUser(user.ID)
+	// Kaydedilen yazılar
+	savedPosts, _ := sitemodels.GetSavedPostsByUser(user.ID)
 
 	data := map[string]interface{}{
 		"CurrentUser":   user,
 		"MyPosts":       myPosts,
 		"MyComments":    myComments,
 		"LikedComments": likedComments,
+		"SavedPosts":    savedPosts,
 		"Alert":         helpers.GetAlert(w, r, homepage.Store),
 	}
 	if err := view.ExecuteTemplate(w, "index", data); err != nil {
@@ -278,7 +292,7 @@ func (homepage Homepage) NewPostForm(w http.ResponseWriter, r *http.Request, _ h
 	}
 	data := map[string]interface{}{
 		"CurrentUser": user,
-		"Categories":  models.Category{}.GetAll(),
+		"Categories":  sitemodels.Category{}.GetAll(),
 		"Alert":       helpers.GetAlert(w, r, homepage.Store),
 	}
 	if err := view.ExecuteTemplate(w, "index", data); err != nil {
@@ -319,7 +333,7 @@ func (homepage Homepage) NewPostSubmit(w http.ResponseWriter, r *http.Request, _
 		pictureURL = "uploads/mainpage.jpg"
 	}
 
-	models.Post{
+	sitemodels.Post{
 		Title:       title,
 		Slug:        slugStr,
 		Description: description,
@@ -343,7 +357,7 @@ func (homepage Homepage) DeleteOwnPost(w http.ResponseWriter, r *http.Request, p
 
 	idStr := params.ByName("id")
 	pid, _ := strconv.Atoi(idStr)
-	post := models.Post{}.Get(pid)
+	post := sitemodels.Post{}.Get(pid)
 	if post.ID == 0 || post.UserID != user.ID {
 		_ = helpers.SetAlert(w, r, "Bu içeriği silme yetkiniz yok.", homepage.Store)
 		http.Redirect(w, r, "/profile", http.StatusSeeOther)
@@ -351,7 +365,7 @@ func (homepage Homepage) DeleteOwnPost(w http.ResponseWriter, r *http.Request, p
 	}
 
 	// Önce yorumları sil, sonra postu sil
-	_ = models.Comment{}.DeleteByPostID(post.ID)
+	_ = sitemodels.Comment{}.DeleteByPostID(post.ID)
 	post.Delete()
 	_ = helpers.SetAlert(w, r, "Yazınız ve yorumları silindi.", homepage.Store)
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)
@@ -360,15 +374,15 @@ func (homepage Homepage) DeleteOwnPost(w http.ResponseWriter, r *http.Request, p
 // Kategoriye göre listeleme
 func (homepage Homepage) CategoryList(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	// Kategori sayıları
-	counts := models.Post{}.CountsByCategory()
+	counts := sitemodels.Post{}.CountsByCategory()
 
 	view, err := template.New("index").Funcs(template.FuncMap{
-		"getCategory": func(categoryID int) string { return models.Category{}.Get(categoryID).Title },
+		"getCategory": func(categoryID int) string { return sitemodels.Category{}.Get(categoryID).Title },
 		"getDate":     func(t time.Time) string { return fmt.Sprintf("%02d.%02d.%d", t.Day(), int(t.Month()), t.Year()) },
-		"sumReplies": func(comments []models.Comment) int {
+		"sumReplies": func(comments []sitemodels.Comment) int {
 			var total int
-			var walk func(items []models.Comment)
-			walk = func(items []models.Comment) {
+			var walk func(items []sitemodels.Comment)
+			walk = func(items []sitemodels.Comment) {
 				for _, c := range items {
 					total++
 					if len(c.Replies) > 0 {
@@ -409,7 +423,7 @@ func (homepage Homepage) CategoryList(w http.ResponseWriter, r *http.Request, pa
 	}
 
 	slugStr := params.ByName("slug")
-	cat := models.Category{}.Get("slug = ?", slugStr)
+	cat := sitemodels.Category{}.Get("slug = ?", slugStr)
 	if cat.ID == 0 {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -417,12 +431,20 @@ func (homepage Homepage) CategoryList(w http.ResponseWriter, r *http.Request, pa
 
 	data := map[string]interface{}{}
 	// SADECE onaylı veya admin yazıları göster (kategoriye göre)
-	data["Posts"] = models.Post{}.GetAll("(is_approved = ? OR user_id = 0) AND category_id = ?", true, cat.ID)
-	data["Categories"] = models.Category{}.GetAll()
+	data["Posts"] = sitemodels.Post{}.GetAll("(is_approved = ? OR user_id = 0) AND category_id = ?", true, cat.ID)
+	data["Categories"] = sitemodels.Category{}.GetAll()
 	data["ActiveCategorySlug"] = slugStr
 	data["Alert"] = helpers.GetAlert(w, r, homepage.Store)
 	if user, ok := helpers.GetCurrentUser(r, homepage.Store); ok {
 		data["CurrentUser"] = user
+		savedPosts, _ := sitemodels.GetSavedPostsByUser(user.ID)
+		sm := make(map[uint]bool, len(savedPosts))
+		for _, sp := range savedPosts {
+			sm[sp.ID] = true
+		}
+		data["SavedMap"] = sm
+	} else {
+		data["SavedMap"] = map[uint]bool{}
 	}
 	data["ReturnURL"] = r.URL.RequestURI()
 
@@ -442,7 +464,7 @@ func (homepage Homepage) EditOwnPostForm(w http.ResponseWriter, r *http.Request,
 	}
 	idStr := params.ByName("id")
 	pid, _ := strconv.Atoi(idStr)
-	post := models.Post{}.Get(pid)
+	post := sitemodels.Post{}.Get(pid)
 	if post.ID == 0 || post.UserID != user.ID {
 		_ = helpers.SetAlert(w, r, "Bu içeriği düzenleme yetkiniz yok.", homepage.Store)
 		http.Redirect(w, r, "/profile", http.StatusSeeOther)
@@ -459,7 +481,7 @@ func (homepage Homepage) EditOwnPostForm(w http.ResponseWriter, r *http.Request,
 	data := map[string]interface{}{
 		"CurrentUser": user,
 		"Post":        post,
-		"Categories":  models.Category{}.GetAll(),
+		"Categories":  sitemodels.Category{}.GetAll(),
 		"Alert":       helpers.GetAlert(w, r, homepage.Store),
 	}
 	if err := view.ExecuteTemplate(w, "index", data); err != nil {
@@ -477,7 +499,7 @@ func (homepage Homepage) EditOwnPostSubmit(w http.ResponseWriter, r *http.Reques
 	}
 	idStr := params.ByName("id")
 	pid, _ := strconv.Atoi(idStr)
-	post := models.Post{}.Get(pid)
+	post := sitemodels.Post{}.Get(pid)
 	if post.ID == 0 || post.UserID != user.ID {
 		_ = helpers.SetAlert(w, r, "Bu içeriği düzenleme yetkiniz yok.", homepage.Store)
 		http.Redirect(w, r, "/profile", http.StatusSeeOther)
@@ -504,7 +526,7 @@ func (homepage Homepage) EditOwnPostSubmit(w http.ResponseWriter, r *http.Reques
 	}
 
 	// İçerik alanlarını güncelle
-	post.Updates(models.Post{
+	post.Updates(sitemodels.Post{
 		Title:       title,
 		Description: description,
 		CategoryID:  categoryID,

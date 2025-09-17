@@ -39,6 +39,7 @@ func main() {
 	site_models.Contact{}.Migrate()
 	site_models.Comment{}.Migrate()
 	site_models.CommentVote{}.Migrate()
+	site_models.PostSave{}.Migrate() // Yeni: Post kaydetme
 
 	http.ListenAndServe(":8080", config.Routes(store))
 }

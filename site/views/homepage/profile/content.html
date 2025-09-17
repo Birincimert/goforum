@@ -47,6 +47,7 @@
             <button class="tab-btn active" data-tab="posts"><i class="fas fa-newspaper"></i> Yazılarım ({{ len .MyPosts }})</button>
             <button class="tab-btn" data-tab="comments"><i class="fas fa-comment"></i> Yorumlarım ({{ len .MyComments }})</button>
             <button class="tab-btn" data-tab="likes"><i class="fas fa-heart"></i> Beğendiklerim ({{ len .LikedComments }})</button>
+            <button class="tab-btn" data-tab="saved"><i class="fas fa-bookmark"></i> Kaydedilenler ({{ len .SavedPosts }})</button>
         </div>
 
         <div class="tab-content active" id="tab-posts">
@@ -91,6 +92,22 @@
             </a>
           {{ else }}
             <div class="empty">Beğendiğiniz yorum bulunmuyor.</div>
+          {{ end }}
+        </div>
+
+        <div class="tab-content" id="tab-saved">
+          {{ range .SavedPosts }}
+            <div class="list-item">
+              <div class="list-left">
+                <a class="list-title" href="/post/{{ .Slug }}">{{ .Title }}</a>
+                <div class="list-sub">{{ .Description }}</div>
+              </div>
+              <div class="list-right">
+                <span class="list-date">{{ .CreatedAt.Format "02.01.2006 15:04" }}</span>
+              </div>
+            </div>
+          {{ else }}
+            <div class="empty">Kaydettiğiniz yazı bulunmuyor.</div>
           {{ end }}
         </div>
     </div>
@@ -147,7 +164,7 @@
 <script>
   (function(){
     const btns=document.querySelectorAll('.tab-btn');
-    const tabs={posts:document.getElementById('tab-posts'),comments:document.getElementById('tab-comments'),likes:document.getElementById('tab-likes')};
+    const tabs={posts:document.getElementById('tab-posts'),comments:document.getElementById('tab-comments'),likes:document.getElementById('tab-likes'),saved:document.getElementById('tab-saved')};
     btns.forEach(b=>b.addEventListener('click',()=>{
       btns.forEach(x=>x.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));

@@ -16,7 +16,7 @@
 <!-- Main Content-->
 <div class="container">
     <div class="row">
-        <div class="col-lg-2 col-md-12 mb-4">
+        <div class="col-lg-3 col-md-12 mb-4 justify-content-start align-items-start">
             <nav class="cat-nav" style="width: 12rem">
                 <div class="cat-title">Kategoriler</div>
                 <ul class="cat-list">
@@ -31,36 +31,43 @@
                 </ul>
             </nav>
         </div>
-        <div class="col-lg-10 col-md-12 mx-auto">
-            {{ range $index,$value := .Posts }}
-            <div class="post-preview">
-                <a href="/yazilar/{{ $value.Slug }}" class="post-link">
-                    <div class="d-flex">
-                        <div class="author-col with-divider">
-                            <div class="author-badge">
-                                {{ if isAdminPost $value.UserID }}
-                                  <div class="avatar-circle admin">A</div>
-                                  <div class="author-handle admin">Admin</div>
-                                {{ else }}
-                                  {{ $u := getAuthor $value.UserID }}
-                                  <div class="avatar-circle">{{ firstLetter $u.Username }}</div>
-                                  <div class="author-handle">@{{ $u.Username }}</div>
-                                {{ end }}
+        <div class="col-lg-9 col-md-12 mx-auto justify-content-end align-items-end">
+            <div class="posts-wrap">
+                {{ range $index,$value := .Posts }}
+                <div class="post-preview">
+                    <a href="/yazilar/{{ $value.Slug }}" class="post-link">
+                        <div class="d-flex">
+                            <div class="author-col with-divider">
+                                <div class="author-badge">
+                                    {{ if isAdminPost $value.UserID }}
+                                      <div class="avatar-circle admin">A</div>
+                                      <div class="author-handle admin">Admin</div>
+                                    {{ else }}
+                                      {{ $u := getAuthor $value.UserID }}
+                                      <div class="avatar-circle">{{ firstLetter $u.Username }}</div>
+                                      <div class="author-handle">@{{ $u.Username }}</div>
+                                    {{ end }}
+                                </div>
+                            </div>
+                            <div class="post-text-content">
+                                <h2 class="post-title text-primary">
+                                  {{ $value.Title }}
+                                  {{ if index $.SavedMap $value.ID }}
+                                    <i class="fas fa-bookmark saved-flag" title="Kaydedildi"></i>
+                                  {{ end }}
+                                </h2>
+                                <p class="post-meta">
+                                    {{ getDate $value.CreatedAt }} - {{ getCategory $value.CategoryID }}
+                                    <span class="ml-5">Yapılan Yorum Sayısı: {{ sumReplies $value.Comments }}</span>
+                                </p>
                             </div>
                         </div>
-                        <div class="post-text-content">
-                            <h2 class="post-title text-primary">{{ $value.Title }}</h2>
-                            <p class="post-meta">
-                                {{ getDate $value.CreatedAt }} - {{ getCategory $value.CategoryID }}
-                                <span class="ml-5">Yapılan Yorum Sayısı: {{ sumReplies $value.Comments }}</span>
-                            </p>
-                        </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
 
-            <hr />
-            {{ end }}
+                <hr />
+                {{ end }}
+            </div>
         </div>
     </div>
     <button onclick="scrollToTop()" id="scrollTopBtn" title="Yukarı Çık">
@@ -72,6 +79,24 @@
 <style>
     :root { --author-col: 120px; }
     @media (max-width: 576px){ :root{ --author-col: 96px; } }
+
+    #scrollTopBtn{
+        display:none; /* Başlangıçta gizli */
+        position:fixed;
+        bottom:40px;
+        right:0px;
+        z-index:99;
+        border:none;
+        outline:none;
+        background-color:#0d3a66;
+        color:white;
+        cursor:pointer;
+        padding:12px 16px;
+        border-radius:50%;
+        font-size:18px;
+        box-shadow:0 4px 8px rgba(0,0,0,0.2);
+        transition:background-color 0.3s, transform 0.3s;
+    }
 
     #scrollTopBtn:hover { background-color:#333; transform:translateY(-2px); }
 
@@ -91,8 +116,11 @@
     .post-text-content { display:flex; flex-direction:column; justify-content:center; }
 
     /* Başlık–tarih aralığını ve alt boşluğu sıkılaştır */
-    .post-title{ margin:0 0 4px; line-height:1.25; }
+    .post-title{ margin:0 0 4px; line-height:1.25; display:flex; align-items:center; gap:8px; }
     .post-meta{ margin:0 !important; color:#6b7280; font-size:.95rem; }
+
+    /* Saved flag ikonu */
+    .saved-flag{ color:#f4d03f; font-size:0.9em; vertical-align:middle; }
 
     /* Satır hizası: çocukları tam yükseklikte tut (divider tam boy görünsün) ve alt boşluğu sıkılaştır */
     .d-flex { display:flex; align-items:stretch; }
@@ -102,14 +130,23 @@
     .post-preview + hr{ margin:6px 0; opacity:1; border-color:#eaeaea; }
     .post-preview:last-of-type + hr{ display:none; }
 
+    /* Yazılar alanını ortaya al */
+    .posts-wrap{ max-width: 900px; margin: 0 auto; }
+
     /* Minimalist kategori menüsü: biraz daha sola al ve postlardan ayır */
-    .cat-nav{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:10px;margin-left:-10px;margin-right:12px}
+    .cat-nav{background:#fff;border:1px solid #eef2f7;border-radius:12px;padding:10px;margin-left:-24px;margin-right:12px}
     .cat-title{font-weight:700;color:#0d3a66;margin:2px 6px 8px}
     .cat-list{list-style:none;margin:0;padding:0}
     .cat-item{margin:0}
     .cat-item a{display:block;padding:6px 10px;border-left:3px solid transparent;color:#222;text-decoration:none;border-radius:8px}
     .cat-item a:hover{background:#f7fafc}
     .cat-item.active a{background:#f3f6fb;border-left-color:#0d3a66;font-weight:700}
+
+    /* Mobil ve orta ekranlarda güvenli margin */
+    @media (max-width: 991.98px){
+        .cat-nav{ margin-left: 0; margin-right: 0; }
+        .posts-wrap{ max-width: 100%; }
+    }
 </style>
 
 <script>
@@ -121,7 +158,7 @@ window.onscroll = function() {
 function scrollFunction() {
     const scrollTopBtn = document.getElementById("scrollTopBtn");
     // Sayfanın 200 piksel aşağı kaydırıldığında butonu göster
-    if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+    if (document.body.scrollTop > 450 || document.documentElement.scrollTop > 450) {
         scrollTopBtn.style.display = "block";
     } else {
         scrollTopBtn.style.display = "none";

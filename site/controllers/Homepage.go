@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"fmt"
 	adminmodels "goforum/admin/models"
 	"goforum/site/helpers"
@@ -96,10 +97,15 @@ func (homepage Homepage) Index(w http.ResponseWriter, r *http.Request, _ httprou
 		data["SavedMap"] = map[uint]bool{}
 	}
 	data["ReturnURL"] = r.URL.RequestURI()
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+
+	// Önce buffer’a render et, sonra yaz
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 func (homepage Homepage) Detail(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -175,10 +181,14 @@ func (homepage Homepage) Detail(w http.ResponseWriter, r *http.Request, params h
 		returnSlug = post.Slug
 	}
 	data["ReturnURL"] = "/post/" + returnSlug + "#comments"
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 func (homepage Homepage) About(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -208,10 +218,14 @@ func (homepage Homepage) About(w http.ResponseWriter, r *http.Request, _ httprou
 	if user, ok := helpers.GetCurrentUser(r, homepage.Store); ok {
 		data["CurrentUser"] = user
 	}
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 // Profile shows a simple profile page for logged-in users
@@ -255,10 +269,14 @@ func (homepage Homepage) Profile(w http.ResponseWriter, r *http.Request, _ httpr
 		"SavedPosts":    savedPosts,
 		"Alert":         helpers.GetAlert(w, r, homepage.Store),
 	}
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 func (homepage Homepage) Contact(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -271,10 +289,14 @@ func (homepage Homepage) Contact(w http.ResponseWriter, r *http.Request, _ httpr
 	if user, ok := helpers.GetCurrentUser(r, homepage.Store); ok {
 		data["CurrentUser"] = user
 	}
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 // Yeni yazı formu
@@ -295,10 +317,14 @@ func (homepage Homepage) NewPostForm(w http.ResponseWriter, r *http.Request, _ h
 		"Categories":  sitemodels.Category{}.GetAll(),
 		"Alert":       helpers.GetAlert(w, r, homepage.Store),
 	}
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 // Yeni yazı kaydet
@@ -448,11 +474,13 @@ func (homepage Homepage) CategoryList(w http.ResponseWriter, r *http.Request, pa
 	}
 	data["ReturnURL"] = r.URL.RequestURI()
 
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 // Kullanıcı kendi postunu düzenleyebilsin (form)
@@ -484,10 +512,14 @@ func (homepage Homepage) EditOwnPostForm(w http.ResponseWriter, r *http.Request,
 		"Categories":  sitemodels.Category{}.GetAll(),
 		"Alert":       helpers.GetAlert(w, r, homepage.Store),
 	}
-	if err := view.ExecuteTemplate(w, "index", data); err != nil {
+
+	var buf bytes.Buffer
+	if err := view.ExecuteTemplate(&buf, "index", data); err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+	_, _ = buf.WriteTo(w)
 }
 
 // Kullanıcı kendi postunu düzenleyebilsin (submit)

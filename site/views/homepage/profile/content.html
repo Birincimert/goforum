@@ -1,7 +1,7 @@
 {{ define "content" }}
 <!-- Modern Profile Page -->
 <div class="profile-container">
-    <div class="profile-header">
+    <div class="profile-header mt-5">
         <div class="profile-avatar">{{ slice .CurrentUser.Username 0 1 }}</div>
         <h1 class="profile-name">{{ .CurrentUser.FirstName }} {{ .CurrentUser.LastName }}</h1>
         <p class="profile-username">@{{ .CurrentUser.Username }}</p>
@@ -156,7 +156,7 @@
 @keyframes flip {
     0%, 80% { transform: rotate(0deg); }
     90%, 100% { transform: rotate(180deg); }
-    }
+}
 
 
 @media(max-width:768px){.grid-2{grid-template-columns:1fr}.profile-actions-top{flex-direction:column}.list-item{flex-direction:column;align-items:flex-start}.actions{align-self:flex-end}.list-right{display:flex;gap:8px}}

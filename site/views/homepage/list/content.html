@@ -50,7 +50,7 @@
                                 </div>
                             </div>
                             <div class="post-text-content">
-                                <h2 class="post-title text-primary">
+                                <h2 class="post-title text-black-100">
                                   {{ $value.Title }}
                                   {{ if index $.SavedMap $value.ID }}
                                     <i class="fas fa-bookmark saved-flag" title="Kaydedildi"></i>
@@ -120,13 +120,13 @@
     .post-meta{ margin:0 !important; color:#6b7280; font-size:.95rem; }
 
     /* Saved flag ikonu */
-    .saved-flag{ color:#f4d03f; font-size:0.9em; vertical-align:middle; }
+    .saved-flag{ color: #3f5df4; font-size:0.9em; vertical-align:middle; }
 
     /* Satır hizası: çocukları tam yükseklikte tut (divider tam boy görünsün) ve alt boşluğu sıkılaştır */
     .d-flex { display:flex; align-items:stretch; }
     .post-preview .d-flex{ margin:0; padding:8px 0; }
 
-    /* Alt ayırıcı çizgisinin boşluğunu azalt ve sonuncuyu gizle */
+    /* Alt ayırıcı çizgisinin boşluğunu azalt ve sonuncuı gizle */
     .post-preview + hr{ margin:6px 0; opacity:1; border-color:#eaeaea; }
     .post-preview:last-of-type + hr{ display:none; }
 
@@ -141,6 +141,19 @@
     .cat-item a{display:block;padding:6px 10px;border-left:3px solid transparent;color:#222;text-decoration:none;border-radius:8px}
     .cat-item a:hover{background:#f7fafc}
     .cat-item.active a{background:#f3f6fb;border-left-color:#0d3a66;font-weight:700}
+
+    /* Forum post hover efekti */
+    .post-preview {
+        border-radius: 12px;
+        transition: box-shadow 0.2s, background 0.2s, transform 0.2s;
+        background: #fff;
+    }
+    .post-preview:hover {
+        box-shadow: 0 4px 24px rgba(13,58,102,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+        background: #c1d7e1;
+        transform: translateY(-2px) scale(1.01);
+        cursor: pointer;
+    }
 
     /* Mobil ve orta ekranlarda güvenli margin */
     @media (max-width: 991.98px){

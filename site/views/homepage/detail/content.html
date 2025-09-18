@@ -114,7 +114,8 @@
 
                 <div class="post-content-holder">
                     <button id="bookmarkBtn" class="bookmark-btn content-pos" data-post-id="{{ .Post.ID }}" title="Kaydet">
-                        <i class="far fa-bookmark"></i>
+                        <i class="far fa-bookmark icon-outline"></i>
+                        <i class="fas fa-bookmark icon-solid"></i>
                     </button>
                     <div id="blog-content" class="post-content my-5" style="font-family: 'Lato', sans-serif; font-size: 1.15rem; line-height: 1.8;">
                         {{ safeHTML .Post.Content }}
@@ -322,11 +323,40 @@
 }
 
 /* Kaydet butonu stili */
-.bookmark-btn { position:absolute; z-index:3; width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.6); background: rgba(17,17,17,.35); color:#fff; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(2px); transition: all .2s ease; }
-.bookmark-btn:hover { transform: translateY(-2px); background: rgba(17,17,17,.55); }
-.bookmark-btn.saved { background:#111111; border-color:#111111; }
-.bookmark-btn.saved i { color: #f4d03f; }
-    /* İçerik alanı için konumlandırma */
+.bookmark-btn {
+    position: absolute;
+    z-index: 3;
+    background: none;
+    border: none;
+    box-shadow: none;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color .2s ease, transform .2s ease;
+    padding: 0;
+    /* FA SVG with JS: boyutu butondan miras alsın */
+    font-size: 2.2rem;
+    line-height: 1;
+}
+.bookmark-btn:hover {
+    color: #005fff;
+    transform: translateY(-2px);
+    background: none;
+}
+/* Renk kuralını i yerine butona uygula (SVG currentColor kullanır) */
+.bookmark-btn.saved { color: #0c299a; }
+/* İkonlarda yumuşak geçiş için */
+.bookmark-btn .svg-inline--fa { transition: color .2s ease; }
+/* Önceki i hedefli kural yerine bırakıldı: gerekirse kaldırılabilir */
+/* İki ikon stratejisi: sadece seçili durumdayken solid göster */
+.bookmark-btn .icon-solid { display: none; }
+.bookmark-btn.saved .icon-solid { display: inline-block; }
+.bookmark-btn.saved .icon-outline { display: none; }
+/* İçerik alanı için konumlandırma */
     .post-content-holder{ position: relative; }
     .bookmark-btn.content-pos{ top:-12px; right:-12px; }
 
@@ -469,15 +499,14 @@
     function updateBookmarkUI(isSaved){
         const btn = document.getElementById('bookmarkBtn');
         if (!btn) return;
-        const icon = btn.querySelector('i');
         if (isSaved) {
             btn.classList.add('saved');
-            if (icon) icon.setAttribute('class','fas fa-bookmark');
             btn.setAttribute('title','Kaydedildi – tıklayınca kaldırılır');
+            btn.setAttribute('aria-pressed','true');
         } else {
             btn.classList.remove('saved');
-            if (icon) icon.setAttribute('class','far fa-bookmark');
             btn.setAttribute('title','Kaydet');
+            btn.setAttribute('aria-pressed','false');
         }
     }
     function handleBookmarkSave(){
@@ -485,10 +514,12 @@
         if (!btn) return;
         const postId = btn.getAttribute('data-post-id');
         if (!IS_AUTH) { redirectToLogin(); return; }
+        // UI'da hemen dolu göster
+        updateBookmarkUI(true);
         fetch(`/post/save/${postId}`, { method:'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(r => r.json())
             .then(j => { if (typeof j.saved === 'boolean') updateBookmarkUI(j.saved); })
-            .catch(()=>{});
+            .catch(()=>{ updateBookmarkUI(false); });
     }
 
     // Hash ile gelindiyse hedef yorumu görünür yap ve vurgula

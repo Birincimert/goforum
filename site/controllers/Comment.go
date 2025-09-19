@@ -97,11 +97,12 @@ func (c SiteComments) CommentUpvote(w http.ResponseWriter, r *http.Request, ps h
 
 	w.Header().Set("Content-Type", "application/json")
 	liked, _ := (models.CommentVote{}).IsLikedBy(user.ID, uint(commentID))
-	fmt.Fprintf(w, `{"success": true, "likes": %d, "liked": %t}`, count, liked)
+	_, _ = fmt.Fprintf(w, `{"success": true, "likes": %d, "liked": %t}`, count, liked)
 }
 
 // CommentLikeCount mevcut beğeni sayısını döndürür
 func (c SiteComments) CommentLikeCount(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	_ = r // unused param
 	commentIDStr := ps.ByName("id")
 	commentID, err := strconv.ParseUint(commentIDStr, 10, 32)
 	if err != nil {
@@ -114,7 +115,7 @@ func (c SiteComments) CommentLikeCount(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, `{"success": true, "likes": %d}`, count)
+	_, _ = fmt.Fprintf(w, `{"success": true, "likes": %d}`, count)
 }
 
 // CommentIsLiked mevcut kullanıcı bu yorumu beğenmiş mi kontrol eder
@@ -137,5 +138,39 @@ func (c SiteComments) CommentIsLiked(w http.ResponseWriter, r *http.Request, ps 
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, `{"success": true, "liked": %t}`, liked)
+	_, _ = fmt.Fprintf(w, `{"success": true, "liked": %t}`, liked)
+}
+
+// DeleteOwnComment: kullanıcı yalnızca kendi yorumunu silebilir
+func (c SiteComments) DeleteOwnComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user, ok := helpers.GetCurrentUser(r, c.Store)
+	if !ok {
+		http.Redirect(w, r, "/login?return_url=/profile", http.StatusSeeOther)
+		return
+	}
+	cidStr := ps.ByName("id")
+	cid, err := strconv.ParseUint(cidStr, 10, 32)
+	if err != nil || cid == 0 {
+		http.Error(w, "Geçersiz yorum ID", http.StatusBadRequest)
+		return
+	}
+
+	cm, err := (models.Comment{}).GetByID(uint(cid))
+	if err != nil || cm.ID == 0 {
+		http.Error(w, "Yorum bulunamadı", http.StatusNotFound)
+		return
+	}
+	if cm.UserID != user.ID {
+		_ = helpers.SetAlert(w, r, "Bu yorumu silme yetkiniz yok.", c.Store)
+		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		return
+	}
+
+	if err := (models.Comment{}).Delete(cm.ID); err != nil {
+		http.Error(w, "Yorum silinirken hata oluştu", http.StatusInternalServerError)
+		return
+	}
+
+	_ = helpers.SetAlert(w, r, "Yorum silindi.", c.Store)
+	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }

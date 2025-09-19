@@ -71,12 +71,15 @@
 
         <div class="tab-content" id="tab-comments">
           {{ range .MyComments }}
-            <a class="list-item" href="{{ commentURL .PostID .ID }}" title="Yoruma git">
-              <div class="list-left">
+            <div class="list-item">
+              <a class="list-left" href="{{ commentURL .PostID .ID }}" title="Yoruma git" style="text-decoration:none;color:inherit;flex:1;">
                 <div class="list-title">{{ .Content }}</div>
                 <div class="list-sub">Yazıya git → <span class="list-date">{{ .CreatedAt.Format "02.01.2006 15:04" }}</span></div>
+              </a>
+              <div class="list-right actions">
+                <a class="btn-del" href="/comment/delete/{{ .ID }}" onclick="return confirm('Bu yorumu ve yanıtlarını silmek istediğinize emin misiniz?');" title="Sil"><i class="fas fa-trash"></i></a>
               </div>
-            </a>
+            </div>
           {{ else }}
             <div class="empty">Henüz yorum yapmamışsınız.</div>
           {{ end }}

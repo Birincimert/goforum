@@ -185,3 +185,16 @@ func (comment Comment) DeleteByPostID(postID uint) error {
 	// Aynı post_id tüm yanıtlar için de bulunduğundan tek sorgu yeterli
 	return db.Where("post_id = ?", postID).Delete(&Comment{}).Error
 }
+
+// GetByID: tek bir yorumu ID ile döndürür
+func (comment Comment) GetByID(id uint) (Comment, error) {
+	db, err := gorm.Open(sqlserver.Open(Dns), &gorm.Config{})
+	if err != nil {
+		return Comment{}, err
+	}
+	var c Comment
+	if err := db.First(&c, id).Error; err != nil {
+		return Comment{}, err
+	}
+	return c, nil
+}

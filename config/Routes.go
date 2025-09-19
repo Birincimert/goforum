@@ -45,6 +45,8 @@ func Routes(store *sessions.CookieStore) *httprouter.Router {
 	r.POST("/comment/upvote/:id", comments.CommentUpvote)
 	r.GET("/comment/likes/:id", comments.CommentLikeCount)
 	r.GET("/comment/liked/:id", comments.CommentIsLiked)
+	// Yeni: Kullanıcının kendi yorumunu silmesi
+	r.GET("/comment/delete/:id", comments.DeleteOwnComment)
 
 	// SAVE (bookmark)
 	save := site.SaveController{Store: store}
